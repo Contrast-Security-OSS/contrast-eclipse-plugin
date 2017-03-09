@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: IDE plugin connecting to REST API - UI
+Bundle-SymbolicName: com.contrastsecurity.ide.eclipse.ui;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator
+Bundle-Vendor: Contrast Security
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ com.contrastsecurity.ide.eclipse.core
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy

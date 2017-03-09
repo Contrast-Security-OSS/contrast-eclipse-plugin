@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: IDE plugin connecting to REST API - Core
+Bundle-SymbolicName: com.contrastsecurity.ide.eclipse.core;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Contrast Security
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.core.filesystem
+Bundle-Activator: com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator
+Bundle-ActivationPolicy: lazy
+Export-Package: com.contrastsecurity.ide.eclipse.core,
+ com.contrastsecurity.ide.eclipse.core.internal.preferences

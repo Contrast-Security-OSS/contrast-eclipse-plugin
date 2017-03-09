@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description>
+      Contrast Security Update Site
+   </description>
+   <feature url="features/com.contrastsecurity.ide.eclipse.feature_1.0.0.qualifier.jar" id="com.contrastsecurity.ide.eclipse.feature" version="1.0.0.qualifier">
+      <category name="com.contrastsecurity.ide.eclipse"/>
+   </feature>
+   <category-def name="com.contrastsecurity.ide.eclipse" label="Contrast IDE">
+      <description>
+         Contrast IDE connecting to REST API
+      </description>
+   </category-def>
+</site>
