@@ -14,10 +14,21 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.core;
 
-public interface Constants {
-	final static String TEAM_SERVER_URL = "contrast.we.url";
-	final static String TEAM_SERVER_URL_VALUE = "https://app.contrastsecurity.com/Contrast";
-	static final String SERVICE_KEY = "service.key";
-	static final String API_KEY = "api.key";
-	static final String USERNAME = "username";
+import java.io.IOException;
+
+import com.contrastsecurity.exceptions.UnauthorizedException;
+import com.contrastsecurity.models.Organizations;
+import com.contrastsecurity.sdk.ContrastSDK;
+
+public class Util {
+	
+	public static String getOrgUuid(ContrastSDK sdk) throws IOException, UnauthorizedException {
+		Organizations organizations = sdk.getProfileOrganizations();
+		String orgUiid = null;
+		if (organizations.getOrganizations() != null && organizations.getOrganizations().size() > 0) {
+			orgUiid = organizations.getOrganizations().get(0).getOrgUuid();
+		}
+		return orgUiid;
+	}
+
 }

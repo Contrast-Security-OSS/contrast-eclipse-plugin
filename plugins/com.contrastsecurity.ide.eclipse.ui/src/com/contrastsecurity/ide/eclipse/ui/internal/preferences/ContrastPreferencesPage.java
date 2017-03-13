@@ -10,34 +10,58 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.preferences;
 
-import org.eclipse.core.runtime.preferences.DefaultScope;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 
+import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
+import com.contrastsecurity.ide.eclipse.core.Util;
+import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
+import com.contrastsecurity.sdk.ContrastSDK;
 
 public class ContrastPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 
 	private Text teamServerText;
 	private Text serviceKeyText;
 	private Text apiKeyText;
+	private Text usernameText;
+	private Button testConnection;
+	private Label testConnectionLabel;
 
 	public ContrastPreferencesPage() {
 		setPreferenceStore(ContrastCoreActivator.getDefault().getPreferenceStore());
-				setTitle("Contrast IDE");
+		setTitle("Contrast IDE");
 	}
-	
+
 	/*
 	 * @see org.eclipse.jface.preference.IPreferencePage#performDefaults()
 	 */
@@ -58,6 +82,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		prefs.put(Constants.TEAM_SERVER_URL, teamServerText.getText());
 		prefs.put(Constants.SERVICE_KEY, serviceKeyText.getText());
 		prefs.put(Constants.API_KEY, apiKeyText.getText());
+		prefs.put(Constants.USERNAME, usernameText.getText());
 		return super.performOk();
 	}
 
@@ -78,6 +103,12 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		teamServerText.setLayoutData(gd);
 		addWarn(composite, "This should be the address of your TeamServer from which vulnerability data");
 		addWarn(composite, "should be retrieved. If you’re using our SaaS, it’s okay to leave this in its default.");
+
+		createLabel(composite, "Username:");
+		usernameText = new Text(composite, SWT.BORDER);
+		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+		gd.horizontalSpan = 2;
+		usernameText.setLayoutData(gd);
 		createLabel(composite, "Service Key:");
 		serviceKeyText = new Text(composite, SWT.BORDER);
 		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
@@ -91,13 +122,115 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		addWarn(composite, "Your Service Key and API key are available by logging into your TeamServer using");
 		addWarn(composite, "your regular account credentials. Go \"My Account\", then \"API Key\".");
 		createLabel(composite, "");
-		Button testConnection = new Button(composite, SWT.PUSH);
+		testConnection = new Button(composite, SWT.PUSH);
 		testConnection.setText("Test Connection");
 		gd = new GridData(SWT.CENTER, SWT.FILL, false, false);
 		gd.horizontalSpan = 3;
 		testConnection.setLayoutData(gd);
+		testConnection.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String url = teamServerText.getText();
+				URL u;
+		        try {
+		            u = new URL(url);
+		        } catch (MalformedURLException e1) {
+		        	MessageDialog.openError(getShell(), "Exception", "Invalid URL.");
+					testConnectionLabel.setText("Connection failed!");
+					return;
+		        }
+		        if (!u.getProtocol().startsWith("http")) {
+		        	MessageDialog.openError(getShell(), "Exception", "Invalid protocol.");
+					testConnectionLabel.setText("Connection failed!");
+					return;
+		        }
+				IRunnableWithProgress op = new IRunnableWithProgress() {
+					public void run(IProgressMonitor monitor) {
+						Display.getDefault().syncExec(new Runnable() {
+
+							@Override
+							public void run() {
+								ContrastSDK sdk = new ContrastSDK(usernameText.getText(), serviceKeyText.getText(),
+										apiKeyText.getText(), url);
+								try {
+									String orgUuid = Util.getOrgUuid(sdk);
+									if (orgUuid == null) {
+										testConnectionLabel.setText("Connection is correct, but no one organizations found.");
+									} else {
+										testConnectionLabel.setText("Connection confirmed!");
+									}
+								} catch (IOException | UnauthorizedException e1) {
+									ContrastUIActivator.log(e1);
+									MessageDialog.openError(getShell(), "Error from server", e1.getMessage());
+									testConnectionLabel.setText("Connection failed!");
+								} catch (Exception e1) {
+									ContrastUIActivator.log(e1);
+									MessageDialog.openError(getShell(), "Exception", "Unknown exception. Check Team Server URL.");
+									testConnectionLabel.setText("Connection failed!");
+								}
+								finally {
+									composite.layout(true, true);
+									composite.redraw();
+								}
+							}
+						});
+
+					}
+				};
+				IWorkbench wb = PlatformUI.getWorkbench();
+				IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+				Shell shell = win != null ? win.getShell() : null;
+				try {
+					new ProgressMonitorDialog(shell).run(true, true, op);
+				} catch (InvocationTargetException | InterruptedException e1) {
+					ContrastUIActivator.log(e1);
+				}
+
+			}
+
+		});
+		testConnectionLabel = new Label(composite, SWT.NONE);
+		gd = new GridData(SWT.CENTER, SWT.FILL, false, false);
+		gd.horizontalSpan = 3;
+		testConnectionLabel.setLayoutData(gd);
+
 		initPreferences();
+		enableTestConnection();
+		teamServerText.addModifyListener(new ModifyListener() {
+
+			@Override
+			public void modifyText(ModifyEvent e) {
+				enableTestConnection();
+			}
+		});
+		usernameText.addModifyListener(new ModifyListener() {
+
+			@Override
+			public void modifyText(ModifyEvent e) {
+				enableTestConnection();
+			}
+		});
+		apiKeyText.addModifyListener(new ModifyListener() {
+
+			@Override
+			public void modifyText(ModifyEvent e) {
+				enableTestConnection();
+			}
+		});
+		serviceKeyText.addModifyListener(new ModifyListener() {
+
+			@Override
+			public void modifyText(ModifyEvent e) {
+				enableTestConnection();
+			}
+		});
 		return composite;
+	}
+
+	private void enableTestConnection() {
+		testConnection.setEnabled(!usernameText.getText().isEmpty() && !teamServerText.getText().isEmpty()
+				&& !apiKeyText.getText().isEmpty() && !serviceKeyText.getText().isEmpty());
 	}
 
 	private Label createLabel(final Composite composite, String name) {
@@ -122,10 +255,11 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		teamServerText.setText(prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE));
 		serviceKeyText.setText(prefs.get(Constants.SERVICE_KEY, ""));
 		apiKeyText.setText(prefs.get(Constants.API_KEY, ""));
+		usernameText.setText(prefs.get(Constants.USERNAME, ""));
 	}
-	
-	private IEclipsePreferences  getPreferences() {
-		return DefaultScope.INSTANCE.getNode(ContrastCoreActivator.PLUGIN_ID);
+
+	private IEclipsePreferences getPreferences() {
+		return InstanceScope.INSTANCE.getNode(ContrastCoreActivator.PLUGIN_ID);
 	}
 
 	@Override

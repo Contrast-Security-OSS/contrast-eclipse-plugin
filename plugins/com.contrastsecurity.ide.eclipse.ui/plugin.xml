@@ -15,13 +15,6 @@
             class="com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView"
             id="com.contrastsecurity.ide.eclipse.ui.views.VulnerabilitiesView">
       </view>
-      <view
-            name="Vulnerability Details"
-            icon="icons/ContrastIcon16px.png"
-            category="com.contrastsecurity.ide.eclipse.ui"
-            class="com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilityDetailsView"
-            id="com.contrastsecurity.ide.eclipse.ui.views.VulnerabilityDetailsView">
-      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -31,14 +24,6 @@
                relative="org.eclipse.ui.views.ProblemView"
                relationship="stack"
                id="com.contrastsecurity.ide.eclipse.ui.views.VulnerabilitiesView">
-         </view>
-      </perspectiveExtension>
-      <perspectiveExtension
-            targetID="org.eclipse.jdt.ui.JavaPerspective">
-         <view
-               relative="org.eclipse.ui.views.ProblemView"
-               relationship="stack"
-               id="com.contrastsecurity.ide.eclipse.ui.views.VulnerabilityDetailsView">
          </view>
       </perspectiveExtension>
    </extension>

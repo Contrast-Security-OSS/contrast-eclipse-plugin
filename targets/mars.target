@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target includeMode="feature" name="mars" sequenceNumber="3">
+<?pde version="3.8"?><target includeMode="feature" name="mars" sequenceNumber="4">
 <locations>
-<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.platform.ide" version="4.5.2.M20160212-1500"/>
 <unit id="org.eclipse.pde.source.feature.group" version="3.11.2.v20160212-1500"/>
 <unit id="org.eclipse.rcp.feature.group" version="4.5.2.v20160212-1500"/>
@@ -13,6 +13,18 @@
 <unit id="org.eclipse.platform.sdk" version="4.5.2.M20160212-1500"/>
 <unit id="org.eclipse.equinox.sdk.feature.group" version="3.11.2.v20160202-2102"/>
 <repository location="http://download.eclipse.org/eclipse/updates/4.5"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="com.google.gson.source" version="2.7.0.v20170129-0911"/>
+<unit id="org.slf4j.api" version="1.7.10.v20170224-1220"/>
+<unit id="org.apache.commons.lang" version="2.6.0.v201404270220"/>
+<unit id="org.apache.commons.io.source" version="2.2.0.v201405211200"/>
+<unit id="org.apache.commons.io" version="2.2.0.v201405211200"/>
+<unit id="org.apache.commons.codec" version="1.9.0.v20170208-1614"/>
+<unit id="org.apache.commons.codec.source" version="1.9.0.v20170208-1614"/>
+<unit id="org.apache.commons.lang.source" version="2.6.0.v201404270220"/>
+<unit id="com.google.gson" version="2.7.0.v20170129-0911"/>
+<repository location="http://download.eclipse.org/tools/orbit/R-builds/R20170307180635/repository"/>
 </location>
 </locations>
 </target>

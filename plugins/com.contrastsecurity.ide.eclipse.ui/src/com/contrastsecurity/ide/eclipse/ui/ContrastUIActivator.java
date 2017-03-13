@@ -14,6 +14,8 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -71,5 +73,19 @@ public class ContrastUIActivator extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+	
+	public static void log(Throwable e) {
+		plugin.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage(), e ));
+	}
+	
+	public static void logInfo(String message) {
+		if (plugin.isDebugging()) {
+			plugin.getLog().log(new Status(IStatus.INFO, PLUGIN_ID, message));
+		}
+	}
+	
+	public static void logWarning(String message) {
+		plugin.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
 	}
 }

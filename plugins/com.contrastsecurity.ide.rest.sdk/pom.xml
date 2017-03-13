@@ -18,17 +18,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.contrastsecurity.ide.eclipse</groupId>
-		<artifactId>parent</artifactId>
+		<artifactId>plugins</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
-	<groupId>com.contrastsecurity.ide.eclipse</groupId>
-	<artifactId>plugins</artifactId>
-	
-	<name>contrastide.plugins</name>	
-	<packaging>pom</packaging>
-	<modules>
-		<module>com.contrastsecurity.ide.eclipse.core</module>
-		<module>com.contrastsecurity.ide.eclipse.ui</module>
-		<module>com.contrastsecurity.ide.rest.sdk</module>
-	</modules>
+	<groupId>com.contrastsecurity.ide.eclipse.plugins</groupId>
+	<artifactId>com.contrastsecurity.ide.rest.sdk</artifactId>
+	<packaging>eclipse-plugin</packaging>
 </project>
