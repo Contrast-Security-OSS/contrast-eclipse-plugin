@@ -32,7 +32,7 @@
       <page 
          class="com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage" 
          id="com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage" 
-         name="Contrast IDE">
+         name="Contrast">
       </page>
    </extension>
 
