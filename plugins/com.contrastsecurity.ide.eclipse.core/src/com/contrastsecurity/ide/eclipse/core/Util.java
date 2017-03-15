@@ -16,19 +16,35 @@ package com.contrastsecurity.ide.eclipse.core;
 
 import java.io.IOException;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+
 import com.contrastsecurity.exceptions.UnauthorizedException;
+import com.contrastsecurity.models.Organization;
 import com.contrastsecurity.models.Organizations;
 import com.contrastsecurity.sdk.ContrastSDK;
 
 public class Util {
 	
-	public static String getOrgUuid(ContrastSDK sdk) throws IOException, UnauthorizedException {
-		Organizations organizations = sdk.getProfileOrganizations();
-		String orgUiid = null;
-		if (organizations.getOrganizations() != null && organizations.getOrganizations().size() > 0) {
-			orgUiid = organizations.getOrganizations().get(0).getOrgUuid();
+	public static Organization getDefaultOrganization(ContrastSDK sdk) throws IOException, UnauthorizedException {
+		if (sdk == null) {
+			return null;
 		}
-		return orgUiid;
+		Organizations organizations = sdk.getProfileDefaultOrganizations();
+		return organizations.getOrganization();
+	}
+	
+	public static String getDefaultOrganizationUuid() throws IOException, UnauthorizedException {
+		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
+		String uuid = prefs.get(Constants.ORGUUID, null);
+		if (uuid == null) {
+			Organization organization = getDefaultOrganization(ContrastCoreActivator.getContrastSDK());
+			if (organization != null) {
+				prefs.put(Constants.ORGNAME, organization.getName());
+				prefs.put(Constants.ORGUUID, organization.getOrgUuid());
+				return organization.getOrgUuid();
+			}
+		}
+		return uuid;
 	}
 
 }

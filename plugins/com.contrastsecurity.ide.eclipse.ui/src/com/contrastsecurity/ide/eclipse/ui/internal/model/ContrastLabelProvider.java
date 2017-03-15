@@ -12,14 +12,18 @@
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
-package com.contrastsecurity.ide.eclipse.core;
+package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
-public interface Constants {
-	final static String TEAM_SERVER_URL = "contrast.we.url";
-	final static String TEAM_SERVER_URL_VALUE = "https://app.contrastsecurity.com/Contrast/api";
-	static final String SERVICE_KEY = "service.key";
-	static final String API_KEY = "api.key";
-	static final String USERNAME = "username";
-	static final String ORGNAME = "orgname";
-	static final String ORGUUID = "orguuid";
+import org.eclipse.jface.viewers.LabelProvider;
+
+public class ContrastLabelProvider extends LabelProvider {
+
+	@Override
+	public String getText(Object element) {
+		if (element instanceof IContrastLabelProvider) {
+			return ((IContrastLabelProvider)element).getName();
+		}
+		return super.getText(element);
+	}
+
 }

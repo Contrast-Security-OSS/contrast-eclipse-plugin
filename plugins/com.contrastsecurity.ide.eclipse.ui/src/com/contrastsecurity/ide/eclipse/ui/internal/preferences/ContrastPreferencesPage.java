@@ -17,7 +17,6 @@ import java.net.URL;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -33,6 +32,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -46,16 +46,20 @@ import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
+import com.contrastsecurity.models.Organization;
 import com.contrastsecurity.sdk.ContrastSDK;
 
 public class ContrastPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 
+	private static final String BLANK = "";
 	private Text teamServerText;
 	private Text serviceKeyText;
 	private Text apiKeyText;
 	private Text usernameText;
 	private Button testConnection;
 	private Label testConnectionLabel;
+	private Text defaultOrganizationNameText;
+	private Text defaultOrganizationUuidText;
 
 	public ContrastPreferencesPage() {
 		setPreferenceStore(ContrastCoreActivator.getDefault().getPreferenceStore());
@@ -83,6 +87,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		prefs.put(Constants.SERVICE_KEY, serviceKeyText.getText());
 		prefs.put(Constants.API_KEY, apiKeyText.getText());
 		prefs.put(Constants.USERNAME, usernameText.getText());
+		prefs.put(Constants.ORGNAME, defaultOrganizationNameText.getText());
+		prefs.put(Constants.ORGUUID, defaultOrganizationUuidText.getText());
 		return super.performOk();
 	}
 
@@ -121,7 +127,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		apiKeyText.setLayoutData(gd);
 		addWarn(composite, "Your Service Key and API key are available by logging into your TeamServer using");
 		addWarn(composite, "your regular account credentials. Go \"My Account\", then \"API Key\".");
-		createLabel(composite, "");
+		createLabel(composite, BLANK);
 		testConnection = new Button(composite, SWT.PUSH);
 		testConnection.setText("Test Connection");
 		gd = new GridData(SWT.CENTER, SWT.FILL, false, false);
@@ -154,11 +160,13 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 								ContrastSDK sdk = new ContrastSDK(usernameText.getText(), serviceKeyText.getText(),
 										apiKeyText.getText(), url);
 								try {
-									String orgUuid = Util.getOrgUuid(sdk);
-									if (orgUuid == null) {
-										testConnectionLabel.setText("Connection is correct, but no one organizations found.");
+									Organization organization = Util.getDefaultOrganization(sdk);
+									if (organization == null || organization.getOrgUuid() == null) {
+										testConnectionLabel.setText("Connection is correct, but no default organizations found.");
 									} else {
 										testConnectionLabel.setText("Connection confirmed!");
+										defaultOrganizationNameText.setText(organization.getName() == null ? "" : organization.getName());
+										defaultOrganizationUuidText.setText(organization.getOrgUuid() == null ? "" : organization.getOrgUuid());
 									}
 								} catch (IOException | UnauthorizedException e1) {
 									ContrastUIActivator.log(e1);
@@ -195,6 +203,23 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		gd.horizontalSpan = 3;
 		testConnectionLabel.setLayoutData(gd);
 
+		Group defaultOrganizationGroup = new Group(composite, SWT.NONE);
+		defaultOrganizationGroup.setLayout(new GridLayout(2, false));
+		defaultOrganizationGroup.setText("Default Organization");
+		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+		gd.horizontalSpan = 3;
+		defaultOrganizationGroup.setLayoutData(gd);
+
+		createLabel(defaultOrganizationGroup, "Name:");
+		defaultOrganizationNameText = new Text(defaultOrganizationGroup, SWT.BORDER);
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		defaultOrganizationNameText.setLayoutData(gd);
+		defaultOrganizationNameText.setEditable(false);
+		createLabel(defaultOrganizationGroup, "Uuid:");
+		defaultOrganizationUuidText = new Text(defaultOrganizationGroup, SWT.BORDER);
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		defaultOrganizationUuidText.setLayoutData(gd);
+		defaultOrganizationUuidText.setEditable(false);
 		initPreferences();
 		enableTestConnection();
 		teamServerText.addModifyListener(new ModifyListener() {
@@ -253,13 +278,15 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	private void initPreferences() {
 		IEclipsePreferences prefs = getPreferences();
 		teamServerText.setText(prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE));
-		serviceKeyText.setText(prefs.get(Constants.SERVICE_KEY, ""));
-		apiKeyText.setText(prefs.get(Constants.API_KEY, ""));
-		usernameText.setText(prefs.get(Constants.USERNAME, ""));
+		serviceKeyText.setText(prefs.get(Constants.SERVICE_KEY, BLANK));
+		apiKeyText.setText(prefs.get(Constants.API_KEY, BLANK));
+		usernameText.setText(prefs.get(Constants.USERNAME, BLANK));
+		defaultOrganizationNameText.setText(prefs.get(Constants.ORGNAME, BLANK));
+		defaultOrganizationUuidText.setText(prefs.get(Constants.ORGUUID, BLANK));
 	}
 
 	private IEclipsePreferences getPreferences() {
-		return InstanceScope.INSTANCE.getNode(ContrastCoreActivator.PLUGIN_ID);
+		return ContrastCoreActivator.getPreferences();
 	}
 
 	@Override

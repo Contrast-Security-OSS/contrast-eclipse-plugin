@@ -16,8 +16,12 @@ package com.contrastsecurity.ide.eclipse.core;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+
+import com.contrastsecurity.sdk.ContrastSDK;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -29,7 +33,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 
 	// The shared instance
 	private static ContrastCoreActivator plugin;
-	
+
 	/**
 	 * The constructor
 	 */
@@ -38,7 +42,9 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+	 * 
+	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.
+	 * BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
@@ -47,7 +53,9 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+	 * 
+	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.
+	 * BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
@@ -62,19 +70,44 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 	public static ContrastCoreActivator getDefault() {
 		return plugin;
 	}
-	
+
 	public static void log(Throwable e) {
-		plugin.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage(), e ));
+		plugin.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage(), e));
 	}
-	
+
 	public static void logInfo(String message) {
 		if (plugin.isDebugging()) {
 			plugin.getLog().log(new Status(IStatus.INFO, PLUGIN_ID, message));
 		}
 	}
-	
+
 	public static void logWarning(String message) {
 		plugin.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
 	}
-	
+
+	public static IEclipsePreferences getPreferences() {
+		return InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+	}
+
+	public static ContrastSDK getContrastSDK() {
+		IEclipsePreferences prefs = getPreferences();
+		String username = prefs.get(Constants.USERNAME, null);
+		if (username == null || username.isEmpty()) {
+			return null;
+		}
+		String serviceKey = prefs.get(Constants.SERVICE_KEY, null);
+		if (serviceKey == null || serviceKey.isEmpty()) {
+			return null;
+		}
+		String apiKey = prefs.get(Constants.API_KEY, null);
+		if (apiKey == null || apiKey.isEmpty()) {
+			return null;
+		}
+		String url = prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
+		if (url == null || url.isEmpty()) {
+			return null;
+		}
+		return new ContrastSDK(username, serviceKey, apiKey, url);
+	}
+
 }
