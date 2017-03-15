@@ -81,8 +81,6 @@ public class VulnerabilitiesView extends ViewPart {
 
 	private ComboViewer applicationCombo;
 
-	private String appId;
-
 	private Image eyeImage;
 
 	/**
@@ -167,10 +165,9 @@ public class VulnerabilitiesView extends ViewPart {
 		});
 		viewer.setContentProvider(ArrayContentProvider.getInstance());
 		ContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
-		// FIXME appId
-		if (orgUuid != null && appId != null) {
+		if (orgUuid != null) {
 			try {
-				Traces traces = sdk.getTraces(orgUuid, appId, null);
+				Traces traces = sdk.getTracesInOrg(orgUuid, null);
 				if (traces != null && traces.getTraces() != null) {
 					Trace[] traceArray = traces.getTraces().toArray(new Trace[0]);
 					viewer.setInput(traceArray);
@@ -222,7 +219,6 @@ public class VulnerabilitiesView extends ViewPart {
 			}
 			if (applications != null && applications.getApplications() != null
 					&& applications.getApplications().size() > 0) {
-				appId = applications.getApplications().get(0).getId();
 				for (Application application : applications.getApplications()) {
 					ApplicationUIAdapter app = new ApplicationUIAdapter(application, application.getName());
 					contrastApplications.add(app);
