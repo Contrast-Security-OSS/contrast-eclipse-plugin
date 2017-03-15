@@ -12,9 +12,9 @@
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
-package com.contrastsecurity.ide.eclipse.ui.internal.views;
+package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
-import com.contrastsecurity.ide.eclipse.ui.internal.model.IContrastLabelProvider;
+import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.models.Server;
 
 public class ServerUIAdapter implements IContrastLabelProvider {
@@ -45,6 +45,13 @@ public class ServerUIAdapter implements IContrastLabelProvider {
 
 	public String getText() {
 		return name;
+	}
+	
+	public Long getId() {
+		if (server != null) {
+			return server.getServerId();
+		}
+		return Constants.ALL_SERVERS;
 	}
 
 }

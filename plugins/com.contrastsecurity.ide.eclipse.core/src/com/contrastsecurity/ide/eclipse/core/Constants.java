@@ -22,4 +22,9 @@ public interface Constants {
 	static final String USERNAME = "username";
 	static final String ORGNAME = "orgname";
 	static final String ORGUUID = "orguuid";
+	static final String SERVER_ID = "serverId";
+	static final String APPLICATION_ID = "applicationId";
+	public static final long ALL_SERVERS = -1l;
+	public static final String ALL_APPLICATIONS = "All applications";
+	
 }

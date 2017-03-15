@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -30,7 +31,9 @@ import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -48,11 +51,14 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
+import com.contrastsecurity.http.TraceFilterForm;
+import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ContrastLabelProvider;
+import com.contrastsecurity.ide.eclipse.ui.internal.model.ServerUIAdapter;
 import com.contrastsecurity.models.Application;
 import com.contrastsecurity.models.Applications;
 import com.contrastsecurity.models.Server;
@@ -83,6 +89,10 @@ public class VulnerabilitiesView extends ViewPart {
 
 	private Image eyeImage;
 
+	private Label messageLabel;
+
+	ContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
+
 	/**
 	 * The constructor.
 	 */
@@ -105,8 +115,22 @@ public class VulnerabilitiesView extends ViewPart {
 		String orgUuid = getUuid();
 		createServerCombo(comboComposite, orgUuid);
 		createApplicationCombo(comboComposite, orgUuid);
+		createViewer(composite);
+		messageLabel = new Label(composite, SWT.NONE);
+		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+		messageLabel.setLayoutData(gd);
+		refreshTraces();
+		// viewer.setLabelProvider(new TraceLabelProvider());
+		getSite().setSelectionProvider(viewer);
+		makeActions();
+		hookContextMenu();
+		hookDoubleClickAction();
+		contributeToActionBars();
+	}
+
+	private void createViewer(Composite composite) {
 		viewer = new TableViewer(composite, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getTable().setLayoutData(gd);
 		TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 		column.getColumn().setWidth(500);
@@ -117,11 +141,11 @@ public class VulnerabilitiesView extends ViewPart {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof Trace) {
-					return ((Trace)element).getTitle();
+					return ((Trace) element).getTitle();
 				}
 				return super.getText(element);
 			}
-			
+
 			public Image getImage(Object obj) {
 				if (obj instanceof Trace) {
 					Trace trace = (Trace) obj;
@@ -129,7 +153,7 @@ public class VulnerabilitiesView extends ViewPart {
 				}
 				return null;
 			}
-			
+
 			private Image getImageInternal(String severity) {
 				switch (severity) {
 				case "Note":
@@ -164,27 +188,79 @@ public class VulnerabilitiesView extends ViewPart {
 			}
 		});
 		viewer.setContentProvider(ArrayContentProvider.getInstance());
-		ContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
+	}
+
+	private void refreshTraces() {
+		String orgUuid;
+		viewer.setInput(new Trace[0]);
+		messageLabel.setText("");
+		try {
+			orgUuid = Util.getDefaultOrganizationUuid();
+		} catch (IOException | UnauthorizedException e) {
+			ContrastUIActivator.log(e);
+			messageLabel.setText("Server error: " + e.getMessage());
+			viewer.refresh();
+			return;
+		}
 		if (orgUuid != null) {
 			try {
-				Traces traces = sdk.getTracesInOrg(orgUuid, null);
+				Long selectedServerId = getSelectedServerId();
+				String selectedAppId = getSelectedAppId();
+				Traces traces = getTraces(orgUuid, selectedServerId, selectedAppId);
 				if (traces != null && traces.getTraces() != null) {
 					Trace[] traceArray = traces.getTraces().toArray(new Trace[0]);
 					viewer.setInput(traceArray);
 				}
+				if (traces == null || traces.getTraces() == null || traces.getTraces().size() <= 0) {
+					messageLabel.setText("No vulnerabilities found");
+				} else {
+					messageLabel.setText(traces.getTraces().size() + " vulnerabilities found");
+				}
 			} catch (IOException | UnauthorizedException e) {
 				ContrastUIActivator.log(e);
+				messageLabel.setText("Server error: " + e.getMessage());
+				viewer.refresh();
+				return;
 			}
 
-		} else {
-			viewer.setInput(new Trace[0]);
 		}
-		//viewer.setLabelProvider(new TraceLabelProvider());
-		getSite().setSelectionProvider(viewer);
-		makeActions();
-		hookContextMenu();
-		hookDoubleClickAction();
-		contributeToActionBars();
+	}
+
+	private Traces getTraces(String orgUuid, Long serverId, String appId)
+			throws IOException, UnauthorizedException {
+		if (orgUuid == null) {
+			return null;
+		}
+		if (appId == null) {
+			appId = Constants.ALL_APPLICATIONS;
+		}
+		if (serverId == 0 || serverId < Constants.ALL_SERVERS) {
+			serverId = Constants.ALL_SERVERS;
+		}
+		Traces traces = null;
+		if (serverId == Constants.ALL_SERVERS && Constants.ALL_APPLICATIONS.equals(appId)) {
+			traces = sdk.getTracesInOrg(orgUuid, null);
+		} else if (serverId == Constants.ALL_SERVERS
+				&& !Constants.ALL_APPLICATIONS.equals(appId)) {
+			traces = sdk.getTraces(orgUuid, appId, null);
+		} else if (serverId != Constants.ALL_SERVERS
+				&& Constants.ALL_APPLICATIONS.equals(appId)) {
+			TraceFilterForm form = getServerTraceForm(serverId);
+			traces = sdk.getTracesInOrg(orgUuid, form);
+		} else if (serverId != Constants.ALL_SERVERS
+				&& Constants.ALL_APPLICATIONS.equals(appId)) {
+			TraceFilterForm form = getServerTraceForm(serverId);
+			traces = sdk.getTraces(orgUuid, appId, form);
+		}
+		return traces;
+	}
+
+	private TraceFilterForm getServerTraceForm(Long selectedServerId) {
+		TraceFilterForm form = new TraceFilterForm();
+		List<Long> serverIds = new ArrayList<>();
+		serverIds.add(selectedServerId);
+		form.setServerIds(serverIds);
+		return form;
 	}
 
 	protected Image getEyeImage() {
@@ -207,7 +283,6 @@ public class VulnerabilitiesView extends ViewPart {
 		applicationCombo.getControl().setFont(composite.getFont());
 		applicationCombo.setLabelProvider(new ContrastLabelProvider());
 		applicationCombo.setContentProvider(new ArrayContentProvider());
-		ContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
 		List<ApplicationUIAdapter> contrastApplications = new ArrayList<>();
 		int count = 0;
 		if (orgUuid != null) {
@@ -229,7 +304,24 @@ public class VulnerabilitiesView extends ViewPart {
 		ApplicationUIAdapter allApplications = new ApplicationUIAdapter(null, "All Applications(" + count + ")");
 		contrastApplications.add(allApplications);
 		applicationCombo.setInput(contrastApplications);
-		applicationCombo.setSelection(new StructuredSelection(allApplications));
+		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
+		String appId = prefs.get(Constants.APPLICATION_ID, Constants.ALL_APPLICATIONS);
+		ApplicationUIAdapter selected = allApplications;
+		for (ApplicationUIAdapter adapter : contrastApplications) {
+			if (appId.equals(adapter.getId())) {
+				selected = adapter;
+				break;
+			}
+		}
+		applicationCombo.setInput(contrastApplications);
+		applicationCombo.setSelection(new StructuredSelection(selected));
+		applicationCombo.addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				refreshTraces();
+			}
+		});
 	}
 
 	private String getUuid() {
@@ -247,7 +339,6 @@ public class VulnerabilitiesView extends ViewPart {
 		serverCombo.getControl().setFont(composite.getFont());
 		serverCombo.setLabelProvider(new ContrastLabelProvider());
 		serverCombo.setContentProvider(new ArrayContentProvider());
-		ContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
 		List<ServerUIAdapter> contrastServers = new ArrayList<>();
 		int count = 0;
 		if (orgUuid != null) {
@@ -267,8 +358,24 @@ public class VulnerabilitiesView extends ViewPart {
 		}
 		ServerUIAdapter allServers = new ServerUIAdapter(null, "All Servers(" + count + ")");
 		contrastServers.add(allServers);
+		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
+		long serverId = prefs.getLong(Constants.SERVER_ID, Constants.ALL_SERVERS);
+		ServerUIAdapter selected = allServers;
+		for (ServerUIAdapter adapter : contrastServers) {
+			if (serverId == adapter.getId()) {
+				selected = adapter;
+				break;
+			}
+		}
 		serverCombo.setInput(contrastServers);
-		serverCombo.setSelection(new StructuredSelection(allServers));
+		serverCombo.setSelection(new StructuredSelection(selected));
+		serverCombo.addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				refreshTraces();
+			}
+		});
 	}
 
 	private void hookContextMenu() {
@@ -342,13 +449,37 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	protected void saveFilter() {
-		// TODO Auto-generated method stub
+		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
+		Long serverId = getSelectedServerId();
+		prefs.putLong(Constants.SERVER_ID, serverId);
+		String appId = getSelectedAppId();
+		prefs.put(Constants.APPLICATION_ID, appId);
+	}
 
+	private String getSelectedAppId() {
+		ISelection sel = applicationCombo.getSelection();
+		if (sel instanceof IStructuredSelection) {
+			Object element = ((IStructuredSelection) sel).getFirstElement();
+			if (element instanceof ApplicationUIAdapter) {
+				return ((ApplicationUIAdapter) element).getId();
+			}
+		}
+		return Constants.ALL_APPLICATIONS;
+	}
+
+	private Long getSelectedServerId() {
+		ISelection sel = serverCombo.getSelection();
+		if (sel instanceof IStructuredSelection) {
+			Object element = ((IStructuredSelection) sel).getFirstElement();
+			if (element instanceof ServerUIAdapter) {
+				return ((ServerUIAdapter) element).getId();
+			}
+		}
+		return Constants.ALL_SERVERS;
 	}
 
 	protected void refreshView() {
-		// TODO Auto-generated method stub
-
+		refreshTraces();
 	}
 
 	private void hookDoubleClickAction() {

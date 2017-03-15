@@ -14,6 +14,7 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
+import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.models.Application;
 
 public class ApplicationUIAdapter implements IContrastLabelProvider {
@@ -41,6 +42,13 @@ public class ApplicationUIAdapter implements IContrastLabelProvider {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getId() {
+		if (application != null) {
+			return application.getId();
+		}
+		return Constants.ALL_APPLICATIONS;
 	}
 
 }
