@@ -25,6 +25,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ComboViewer;
@@ -48,6 +49,7 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.ViewPart;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
@@ -59,6 +61,7 @@ import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ContrastLabelProvider;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ServerUIAdapter;
+import com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage;
 import com.contrastsecurity.models.Application;
 import com.contrastsecurity.models.Applications;
 import com.contrastsecurity.models.Server;
@@ -81,6 +84,7 @@ public class VulnerabilitiesView extends ViewPart {
 	private TableViewer viewer;
 	private Action saveFilterAction;
 	private Action refreshAction;
+	private Action openPreferencesPage;
 	private Action doubleClickAction;
 
 	private ComboViewer serverCombo;
@@ -398,12 +402,14 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
+		manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		manager.add(new Separator());
 		manager.add(saveFilterAction);
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
+		manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		manager.add(saveFilterAction);
 		// Other plug-ins can contribute there actions here
@@ -411,11 +417,22 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
+		manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		manager.add(saveFilterAction);
 	}
 
 	private void makeActions() {
+		openPreferencesPage = new Action() {
+			public void run() {
+				PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getSite().getShell(), ContrastPreferencesPage.ID, null, null);
+			    dialog.open();
+			}
+		};
+		openPreferencesPage.setText("Contrast Preferences Page");
+		openPreferencesPage.setToolTipText("Open Contrast Preferences Page");
+		openPreferencesPage.setImageDescriptor(
+				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_DEF_VIEW));
 		refreshAction = new Action() {
 			public void run() {
 				refreshView();

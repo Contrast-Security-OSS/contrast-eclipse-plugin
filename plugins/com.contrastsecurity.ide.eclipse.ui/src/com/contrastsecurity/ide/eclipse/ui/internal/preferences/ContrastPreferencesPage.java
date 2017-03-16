@@ -51,6 +51,7 @@ import com.contrastsecurity.sdk.ContrastSDK;
 
 public class ContrastPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 
+	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage";
 	private static final String BLANK = "";
 	private Text teamServerText;
 	private Text serviceKeyText;
