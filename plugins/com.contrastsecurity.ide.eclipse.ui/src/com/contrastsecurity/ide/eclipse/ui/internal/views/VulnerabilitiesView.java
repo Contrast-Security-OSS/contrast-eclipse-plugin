@@ -15,6 +15,7 @@
 package com.contrastsecurity.ide.eclipse.ui.internal.views;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,6 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -36,15 +36,19 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -61,6 +65,7 @@ import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ContrastLabelProvider;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ServerUIAdapter;
+import com.contrastsecurity.ide.eclipse.ui.internal.model.VulnerabilityLabelProvider;
 import com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage;
 import com.contrastsecurity.models.Application;
 import com.contrastsecurity.models.Applications;
@@ -71,7 +76,7 @@ import com.contrastsecurity.models.Traces;
 import com.contrastsecurity.sdk.ContrastSDK;
 
 /**
- * Mockup View
+ * Vulnerabilities View
  */
 
 public class VulnerabilitiesView extends ViewPart {
@@ -91,11 +96,11 @@ public class VulnerabilitiesView extends ViewPart {
 
 	private ComboViewer applicationCombo;
 
-	private Image eyeImage;
-
-	private Label messageLabel;
+	private Label statusLabel;
 
 	ContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
+
+	private Label countLabel;
 
 	/**
 	 * The constructor.
@@ -108,21 +113,7 @@ public class VulnerabilitiesView extends ViewPart {
 	 * it.
 	 */
 	public void createPartControl(Composite parent) {
-		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setLayout(new GridLayout());
-		Composite comboComposite = new Composite(composite, SWT.NONE);
-		comboComposite.setLayout(new GridLayout(3, false));
-		Label label = new Label(comboComposite, SWT.NONE);
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		label.setLayoutData(gd);
-		label.setText("Show Vulnerabilities:");
-		String orgUuid = getUuid();
-		createServerCombo(comboComposite, orgUuid);
-		createApplicationCombo(comboComposite, orgUuid);
-		createViewer(composite);
-		messageLabel = new Label(composite, SWT.NONE);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		messageLabel.setLayoutData(gd);
+		createList(parent);
 		refreshTraces();
 		// viewer.setLabelProvider(new TraceLabelProvider());
 		getSite().setSelectionProvider(viewer);
@@ -132,77 +123,112 @@ public class VulnerabilitiesView extends ViewPart {
 		contributeToActionBars();
 	}
 
+	private void createList(Composite parent) {
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(new GridLayout());
+		Composite comboComposite = new Composite(composite, SWT.NONE);
+		comboComposite.setLayout(new GridLayout(3, false));
+		countLabel = new Label(comboComposite, SWT.NONE);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+		countLabel.setLayoutData(gd);
+		// countLabel.setText("Show Vulnerabilities:");
+		String orgUuid = getOrgUuid();
+		createServerCombo(comboComposite, orgUuid);
+		createApplicationCombo(comboComposite, orgUuid);
+		createViewer(composite);
+		
+		statusLabel = new Label(composite, SWT.NONE);
+		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+		statusLabel.setLayoutData(gd);
+		statusLabel.setText("test");
+	}
+
 	private void createViewer(Composite composite) {
-		viewer = new TableViewer(composite, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+		viewer = new TableViewer(composite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getTable().setLayoutData(gd);
-		TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-		column.getColumn().setWidth(500);
-		column.getColumn().setText("Title");
-		column.getColumn().setMoveable(true);
-		column.setLabelProvider(new ColumnLabelProvider() {
+		viewer.setLabelProvider(new VulnerabilityLabelProvider());
+		TableColumn column = new TableColumn(viewer.getTable(), SWT.NONE);
+		column.setWidth(100);
+		column.setText("Severity");
+		
+		column = new TableColumn(viewer.getTable(), SWT.NONE);
+		column.setWidth(600);
+		column.setText("Vulnerability");
 
+		column = new TableColumn(viewer.getTable(), SWT.NONE);
+		column.setWidth(150);
+		column.setText("Actions");
+		viewer.getTable().addMouseListener(new MouseListener() {
+			
 			@Override
-			public String getText(Object element) {
-				if (element instanceof Trace) {
-					return ((Trace) element).getTitle();
-				}
-				return super.getText(element);
+			public void mouseUp(MouseEvent e) {
+				
 			}
-
-			public Image getImage(Object obj) {
-				if (obj instanceof Trace) {
-					Trace trace = (Trace) obj;
-					return getImageInternal(trace.getSeverity());
+			
+			@Override
+			public void mouseDown(MouseEvent e) {
+				if (getOrgUuid() == null) {
+					return;
 				}
-				return null;
+				Point point = new Point(e.x, e.y);
+				ViewerCell cell = viewer.getCell(point);
+				ISelection sel = viewer.getSelection();
+				if (sel instanceof IStructuredSelection) {
+					Object selected = ((IStructuredSelection) sel).getFirstElement();
+					if (selected instanceof Trace) {
+						if (cell != null && cell.getColumnIndex() == 2) {
+							System.out.println("View Details");
+						}
+						if (cell != null && cell.getColumnIndex() == 3) {
+							try {
+								// https://apptwo.contrastsecurity.com/Contrast/static/ng/index.html#/orgUuid/vulns/<VULN_ID>/overview
+								String teamServerUrl = ContrastCoreActivator.getPreferences().get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
+								teamServerUrl = teamServerUrl.trim();
+								if (teamServerUrl != null && teamServerUrl.endsWith("/api")) {
+									teamServerUrl = teamServerUrl.substring(0, teamServerUrl.length() - 4);
+								}
+								if (teamServerUrl != null && teamServerUrl.endsWith("/api/")) {
+									teamServerUrl = teamServerUrl.substring(0, teamServerUrl.length() - 5);
+								}
+								String urlStr = teamServerUrl + "/static/ng/index.html#/" + getOrgUuid() + "/vulns/" + ((Trace)selected).getUuid() + "/overview";
+								URL url = new URL(urlStr);
+								PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(url);
+							} catch (Exception e1) {
+								ContrastUIActivator.log(e1);
+							}
+						}
+					}
+				}
 			}
-
-			private Image getImageInternal(String severity) {
-				switch (severity) {
-				case "Note":
-					return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_INFO_TSK);
-				case "High":
-					return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_ERROR_TSK);
-				case "Medium":
-					return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_WARN_TSK);
-				case "Low":
-					return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_CLEAR);
-				}
-				return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_INFO_TSK);
+			
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				
 			}
 		});
-		column = new TableViewerColumn(viewer, SWT.NONE);
-		column.getColumn().setWidth(50);
-		column.getColumn().setText("Action");
-		column.getColumn().setMoveable(true);
-		column.setLabelProvider(new ColumnLabelProvider() {
-
-			@Override
-			public String getText(Object element) {
-				return "";
-			}
-
-			@Override
-			public Image getImage(Object element) {
-				if (element instanceof Trace) {
-					return getEyeImage();
-				}
-				return super.getImage(element);
-			}
-		});
+		
+		column = new TableColumn(viewer.getTable(), SWT.NONE);
+		column.setWidth(100);
+		column.setText("");
+		
+		viewer.getTable().setLinesVisible(true);
+		viewer.getTable().setHeaderVisible(true);
 		viewer.setContentProvider(ArrayContentProvider.getInstance());
+		TableLayout layout = new TableLayout();
+		viewer.getTable().setLayout(layout);
 	}
 
 	private void refreshTraces() {
 		String orgUuid;
 		viewer.setInput(new Trace[0]);
-		messageLabel.setText("");
+		statusLabel.setText("");
+		countLabel.setText("0 Vulnerabilities");
 		try {
 			orgUuid = Util.getDefaultOrganizationUuid();
 		} catch (IOException | UnauthorizedException e) {
 			ContrastUIActivator.log(e);
-			messageLabel.setText("Server error: " + e.getMessage());
+			statusLabel.setText("Server error: " + e.getMessage());
 			viewer.refresh();
 			return;
 		}
@@ -215,14 +241,18 @@ public class VulnerabilitiesView extends ViewPart {
 					Trace[] traceArray = traces.getTraces().toArray(new Trace[0]);
 					viewer.setInput(traceArray);
 				}
-				if (traces == null || traces.getTraces() == null || traces.getTraces().size() <= 0) {
-					messageLabel.setText("No vulnerabilities found");
+				if (traces != null && traces.getTraces() != null && traces.getTraces().size() > 0) {
+					countLabel.setText(traces.getTraces().size() + " Vulnerabilities");
+					viewer.getTable().setHeaderVisible(true);
 				} else {
-					messageLabel.setText(traces.getTraces().size() + " vulnerabilities found");
+					statusLabel.setText("No vulnerabilities were found.");
+					viewer.getTable().setHeaderVisible(false);
 				}
+				viewer.getControl().getParent().layout(true, true);
+				viewer.getControl().getParent().redraw();
 			} catch (IOException | UnauthorizedException e) {
 				ContrastUIActivator.log(e);
-				messageLabel.setText("Server error: " + e.getMessage());
+				statusLabel.setText("Server error: " + e.getMessage());
 				viewer.refresh();
 				return;
 			}
@@ -230,8 +260,7 @@ public class VulnerabilitiesView extends ViewPart {
 		}
 	}
 
-	private Traces getTraces(String orgUuid, Long serverId, String appId)
-			throws IOException, UnauthorizedException {
+	private Traces getTraces(String orgUuid, Long serverId, String appId) throws IOException, UnauthorizedException {
 		if (orgUuid == null) {
 			return null;
 		}
@@ -244,15 +273,12 @@ public class VulnerabilitiesView extends ViewPart {
 		Traces traces = null;
 		if (serverId == Constants.ALL_SERVERS && Constants.ALL_APPLICATIONS.equals(appId)) {
 			traces = sdk.getTracesInOrg(orgUuid, null);
-		} else if (serverId == Constants.ALL_SERVERS
-				&& !Constants.ALL_APPLICATIONS.equals(appId)) {
+		} else if (serverId == Constants.ALL_SERVERS && !Constants.ALL_APPLICATIONS.equals(appId)) {
 			traces = sdk.getTraces(orgUuid, appId, null);
-		} else if (serverId != Constants.ALL_SERVERS
-				&& Constants.ALL_APPLICATIONS.equals(appId)) {
+		} else if (serverId != Constants.ALL_SERVERS && Constants.ALL_APPLICATIONS.equals(appId)) {
 			TraceFilterForm form = getServerTraceForm(serverId);
 			traces = sdk.getTracesInOrg(orgUuid, form);
-		} else if (serverId != Constants.ALL_SERVERS
-				&& Constants.ALL_APPLICATIONS.equals(appId)) {
+		} else if (serverId != Constants.ALL_SERVERS && Constants.ALL_APPLICATIONS.equals(appId)) {
 			TraceFilterForm form = getServerTraceForm(serverId);
 			traces = sdk.getTraces(orgUuid, appId, form);
 		}
@@ -267,18 +293,8 @@ public class VulnerabilitiesView extends ViewPart {
 		return form;
 	}
 
-	protected Image getEyeImage() {
-		if (eyeImage == null) {
-			eyeImage = ContrastUIActivator.getImageDescriptor("/icons/eye.png").createImage();
-		}
-		return eyeImage;
-	}
-
 	@Override
 	public void dispose() {
-		if (eyeImage != null) {
-			eyeImage.dispose();
-		}
 		super.dispose();
 	}
 
@@ -328,7 +344,7 @@ public class VulnerabilitiesView extends ViewPart {
 		});
 	}
 
-	private String getUuid() {
+	private String getOrgUuid() {
 		String orgUuid = null;
 		try {
 			orgUuid = Util.getDefaultOrganizationUuid();
@@ -402,14 +418,14 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
-		manager.add(openPreferencesPage);
+		//manager.add(openPreferencesPage);
 		manager.add(refreshAction);
-		manager.add(new Separator());
+		//manager.add(new Separator());
 		manager.add(saveFilterAction);
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
-		manager.add(openPreferencesPage);
+		//manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		manager.add(saveFilterAction);
 		// Other plug-ins can contribute there actions here
@@ -417,7 +433,7 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(openPreferencesPage);
+		//manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		manager.add(saveFilterAction);
 	}
@@ -425,8 +441,9 @@ public class VulnerabilitiesView extends ViewPart {
 	private void makeActions() {
 		openPreferencesPage = new Action() {
 			public void run() {
-				PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getSite().getShell(), ContrastPreferencesPage.ID, null, null);
-			    dialog.open();
+				PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getSite().getShell(),
+						ContrastPreferencesPage.ID, null, null);
+				dialog.open();
 			}
 		};
 		openPreferencesPage.setText("Contrast Preferences Page");
@@ -506,7 +523,7 @@ public class VulnerabilitiesView extends ViewPart {
 			}
 		});
 	}
-
+	
 	@Override
 	public void setFocus() {
 		if (viewer != null || !viewer.getControl().isDisposed()) {
