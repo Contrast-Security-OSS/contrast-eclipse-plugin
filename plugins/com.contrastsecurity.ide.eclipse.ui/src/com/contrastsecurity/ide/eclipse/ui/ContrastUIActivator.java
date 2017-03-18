@@ -22,6 +22,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import com.contrastsecurity.models.Trace;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -100,4 +102,21 @@ public class ContrastUIActivator extends AbstractUIPlugin {
 	public static void logWarning(String message) {
 		plugin.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
 	}
+	
+	public static Image getSeverityImage(Trace element) {
+		switch (element.getSeverity()) {
+		case "Note":
+			return ContrastUIActivator.getImage("/icons/note.png");
+		case "High":
+			return ContrastUIActivator.getImage("/icons/high.png");
+		case "Medium":
+			return ContrastUIActivator.getImage("/icons/medium.png");
+		case "Low":
+			return ContrastUIActivator.getImage("/icons/low.png");
+		case "Critical":
+			return ContrastUIActivator.getImage("/icons/critical.png");
+		}
+		return null;
+	}
+
 }
