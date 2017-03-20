@@ -13,4 +13,5 @@ Require-Bundle: org.eclipse.ui,
 Bundle-Activator: com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator
 Bundle-ActivationPolicy: lazy
 Export-Package: com.contrastsecurity.ide.eclipse.core,
+ com.contrastsecurity.ide.eclipse.core.extended,
  com.contrastsecurity.ide.eclipse.core.internal.preferences

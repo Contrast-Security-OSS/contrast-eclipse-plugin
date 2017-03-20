@@ -12,16 +12,29 @@
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
-package com.contrastsecurity.ide.eclipse.ui.internal.model;
+package com.contrastsecurity.ide.eclipse.core.extended;
 
-import org.eclipse.swt.widgets.Composite;
+public class PropertyResource {
 
-import com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView;
+	private String name;
+	private String value;
 
-public class MainPage extends VulnerabilityPage {
-	
-	public MainPage(Composite parent, int style, VulnerabilitiesView vulnerabilitiesView) {
-		super(parent, style, vulnerabilitiesView);
+	public PropertyResource() {
 	}
-	
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
 }

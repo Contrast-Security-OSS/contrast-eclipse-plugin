@@ -18,10 +18,17 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView;
 
-public class MainPage extends VulnerabilityPage {
+public class AbstractPage extends Composite {
+
+	private VulnerabilitiesView vulnerabilitiesView;
 	
-	public MainPage(Composite parent, int style, VulnerabilitiesView vulnerabilitiesView) {
-		super(parent, style, vulnerabilitiesView);
+	public AbstractPage(Composite parent, int style, VulnerabilitiesView vulnerabilitiesView) {
+		super(parent, style);
+		this.vulnerabilitiesView = vulnerabilitiesView;
 	}
-	
+
+	public VulnerabilitiesView getVulnerabilitiesView() {
+		return vulnerabilitiesView;
+	}
+
 }

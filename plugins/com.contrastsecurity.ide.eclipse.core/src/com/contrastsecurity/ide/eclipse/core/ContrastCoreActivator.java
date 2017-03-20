@@ -21,7 +21,7 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.contrastsecurity.sdk.ContrastSDK;
+import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -89,7 +89,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		return InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 	}
 
-	public static ContrastSDK getContrastSDK() {
+	public static ExtendedContrastSDK getContrastSDK() {
 		IEclipsePreferences prefs = getPreferences();
 		String username = prefs.get(Constants.USERNAME, null);
 		if (username == null || username.isEmpty()) {
@@ -107,7 +107,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		if (url == null || url.isEmpty()) {
 			return null;
 		}
-		return new ContrastSDK(username, serviceKey, apiKey, url);
+		return new ExtendedContrastSDK(username, serviceKey, apiKey, url);
 	}
 
 }

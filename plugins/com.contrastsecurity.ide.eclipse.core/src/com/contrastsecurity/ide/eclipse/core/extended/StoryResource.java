@@ -12,16 +12,41 @@
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
-package com.contrastsecurity.ide.eclipse.ui.internal.model;
+package com.contrastsecurity.ide.eclipse.core.extended;
 
-import org.eclipse.swt.widgets.Composite;
+import java.util.List;
 
-import com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView;
+public class StoryResource {
 
-public class MainPage extends VulnerabilityPage {
+	private String success;
+	private List<String> messages;
+	private Story story;
 	
-	public MainPage(Composite parent, int style, VulnerabilitiesView vulnerabilitiesView) {
-		super(parent, style, vulnerabilitiesView);
+	public StoryResource() {
 	}
-	
+
+	public String getSuccess() {
+		return success;
+	}
+
+	public void setSuccess(String success) {
+		this.success = success;
+	}
+
+	public List<String> getMessages() {
+		return messages;
+	}
+
+	public void setMessages(List<String> messages) {
+		this.messages = messages;
+	}
+
+	public Story getStory() {
+		return story;
+	}
+
+	public void setStory(Story story) {
+		this.story = story;
+	}
+
 }

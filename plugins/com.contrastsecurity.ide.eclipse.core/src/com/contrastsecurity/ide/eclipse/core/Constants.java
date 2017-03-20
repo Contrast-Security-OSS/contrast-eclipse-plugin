@@ -31,4 +31,5 @@ public interface Constants {
 	static final String ALL_APPLICATIONS = "All applications";
 	// #0DA1A9
 	static final Color LINK_COLOR = new Color(Display.getDefault(), 13 , 161, 169);
+	static final int REFRESH_DELAY = 5 * 60 * 1000; // 5 minutes
 }

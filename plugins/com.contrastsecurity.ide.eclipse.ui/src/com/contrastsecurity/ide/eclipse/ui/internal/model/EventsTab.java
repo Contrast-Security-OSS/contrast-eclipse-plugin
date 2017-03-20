@@ -14,14 +14,16 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
-import com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView;
+public class EventsTab extends Composite {
 
-public class MainPage extends VulnerabilityPage {
-	
-	public MainPage(Composite parent, int style, VulnerabilitiesView vulnerabilitiesView) {
-		super(parent, style, vulnerabilitiesView);
+	public EventsTab(Composite parent, int style) {
+		super(parent, style);
+		Label label = new Label(this, SWT.NONE);
+		label.setText("Events");
 	}
-	
+
 }

@@ -14,14 +14,28 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
-import com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView;
+public class OverviewTab extends Composite {
 
-public class MainPage extends VulnerabilityPage {
-	
-	public MainPage(Composite parent, int style, VulnerabilitiesView vulnerabilitiesView) {
-		super(parent, style, vulnerabilitiesView);
+	private Composite control;
+
+	public OverviewTab(Composite parent, int style) {
+		super(parent, style);
+		setLayout(new GridLayout());
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		setLayoutData(gd);
+		control = new Composite(this, SWT.BORDER);
+		control.setLayout(new GridLayout());
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		control.setLayoutData(gd);
 	}
-	
+
+	public Composite getControl() {
+		return control;
+	}
+
 }
