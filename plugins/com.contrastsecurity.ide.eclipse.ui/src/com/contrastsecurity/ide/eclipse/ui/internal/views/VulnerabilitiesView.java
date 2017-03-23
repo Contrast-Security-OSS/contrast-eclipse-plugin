@@ -201,12 +201,12 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void createViewer(Composite composite) {
-		viewer = new TableViewer(composite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
+		viewer = new TableViewer(composite, SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getTable().setLayoutData(gd);
 		viewer.setLabelProvider(new VulnerabilityLabelProvider());
 		TableColumn column = new TableColumn(viewer.getTable(), SWT.NONE);
-		column.setWidth(100);
+		column.setWidth(80);
 		column.setText("Severity");
 
 		column = new TableColumn(viewer.getTable(), SWT.NONE);
@@ -245,6 +245,7 @@ public class VulnerabilitiesView extends ViewPart {
 							detailsPage.setStory(story);
 							removeListeners(currentPage);
 							book.showPage(detailsPage);
+							detailsPage.setDefaultSelection();
 							activePage = detailsPage;
 							refreshAction.setEnabled(false);
 							detailsPage.setTrace(trace);
@@ -457,13 +458,7 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private String getOrgUuid() {
-		String orgUuid = null;
-		try {
-			orgUuid = Util.getDefaultOrganizationUuid();
-		} catch (IOException | UnauthorizedException e) {
-			ContrastUIActivator.log(e);
-		}
-		return orgUuid;
+		return ContrastUIActivator.getOrgUuid();
 	}
 
 	private void hookContextMenu() {
@@ -590,9 +585,9 @@ public class VulnerabilitiesView extends ViewPart {
 
 	@Override
 	public void setFocus() {
-		// if (viewer != null || !viewer.getControl().isDisposed()) {
-		// viewer.getControl().setFocus();
-		// }
+		if (viewer != null || !viewer.getControl().isDisposed()) {
+			viewer.getControl().setFocus();
+		}
 	}
 
 	private void startRefreshJob() {
@@ -622,8 +617,7 @@ public class VulnerabilitiesView extends ViewPart {
 		if (teamServerUrl != null && teamServerUrl.endsWith("/api/")) {
 			teamServerUrl = teamServerUrl.substring(0, teamServerUrl.length() - 5);
 		}
-		String urlStr = teamServerUrl + "/static/ng/index.html#/" + getOrgUuid() + "/vulns/" + traceId
-				+ "/overview";
+		String urlStr = teamServerUrl + "/static/ng/index.html#/" + getOrgUuid() + "/vulns/" + traceId + "/overview";
 		URL url = new URL(urlStr);
 		return url;
 	}

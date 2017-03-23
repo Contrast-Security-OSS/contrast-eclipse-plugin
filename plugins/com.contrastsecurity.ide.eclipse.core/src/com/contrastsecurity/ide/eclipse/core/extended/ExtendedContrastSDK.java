@@ -51,6 +51,25 @@ public class ExtendedContrastSDK extends ContrastSDK {
 		super(user, serviceKey, apiKey);
 		this.gson = new Gson();
 	}
+	
+	public HttpRequestResource getHttpRequest(String orgUuid, String traceId) throws IOException, UnauthorizedException {
+		InputStream is = null;
+		InputStreamReader reader = null;
+		try {
+			String httpRequestUrl = getHttpRequestUrl(orgUuid, traceId);
+			is = makeRequest(HttpMethod.GET, httpRequestUrl);
+			reader = new InputStreamReader(is);
+			HttpRequestResource resource = gson.fromJson(reader, HttpRequestResource.class);
+			return resource;
+		} finally {
+			IOUtils.closeQuietly(is);
+			IOUtils.closeQuietly(reader);
+		}
+	}
+
+	private String getHttpRequestUrl(String orgUuid, String traceId) {
+		return String.format("/ng/%s/traces/%s/httprequest?expand=skip_links", orgUuid, traceId);
+	}
 
 	public StoryResource getStory(String orgUuid, String traceId) throws IOException, UnauthorizedException {
 		InputStream is = null;

@@ -14,7 +14,10 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.core;
 
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Display;
 
 public interface Constants {
@@ -31,5 +34,18 @@ public interface Constants {
 	static final String ALL_APPLICATIONS = "All applications";
 	// #0DA1A9
 	static final Color LINK_COLOR = new Color(Display.getDefault(), 13 , 161, 169);
+	static final Color LINK_COLOR_HOVER = Display.getCurrent().getSystemColor(SWT.COLOR_LINK_FOREGROUND); //new Color(Display.getDefault(), 13 , 161, 169, 120);
 	static final int REFRESH_DELAY = 5 * 60 * 1000; // 5 minutes
+	static final Color NOTE_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
+	static final Color NOTE_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
+	//f98a1f 249,138,31
+	static final Color HIGH_COLOR_BACKGROUND = new Color(Display.getDefault(), 249 , 138, 31);
+	static final Color HIGH_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
+	static final Color MEDIUM_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+	static final Color MEDIUM_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
+	static final Color LOW_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+	static final Color LOW_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
+	static final Color CRITICAL_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_RED);;
+	static final Color CRITICAL_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
+	static final Font SEVERITY_FONT = JFaceResources.getHeaderFont();
 }

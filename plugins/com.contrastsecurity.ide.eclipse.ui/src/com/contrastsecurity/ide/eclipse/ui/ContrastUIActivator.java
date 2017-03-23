@@ -14,6 +14,8 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui;
 
+import java.io.IOException;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -22,6 +24,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import com.contrastsecurity.exceptions.UnauthorizedException;
+import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.models.Trace;
 
 /**
@@ -117,6 +121,16 @@ public class ContrastUIActivator extends AbstractUIPlugin {
 			return ContrastUIActivator.getImage("/icons/critical.png");
 		}
 		return null;
+	}
+	
+	public static String getOrgUuid() {
+		String orgUuid = null;
+		try {
+			orgUuid = Util.getDefaultOrganizationUuid();
+		} catch (IOException | UnauthorizedException e) {
+			log(e);
+		}
+		return orgUuid;
 	}
 
 }

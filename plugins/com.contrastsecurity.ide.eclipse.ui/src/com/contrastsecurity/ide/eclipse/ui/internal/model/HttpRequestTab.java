@@ -15,15 +15,31 @@
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 public class HttpRequestTab extends Composite {
 
-	public HttpRequestTab(Composite parent, int style) {
+		private Text area;
+
+		public HttpRequestTab(Composite parent, int style) {
 		super(parent, style);
-		Label label = new Label(this, SWT.NONE);
-		label.setText("Http Request");
+		setLayout(new GridLayout());
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		setLayoutData(gd);
+		Composite control = new Composite(this, SWT.NONE);
+		control.setLayout(new GridLayout());
+		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		control.setLayoutData(gd);
+		area = new Text(control, SWT.MULTI|SWT.V_SCROLL|SWT.H_SCROLL);
+		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		area.setLayoutData(gd);
+		area.setEditable(false);
 	}
 
+	public Text getArea() {
+		return area;
+	}
 }
