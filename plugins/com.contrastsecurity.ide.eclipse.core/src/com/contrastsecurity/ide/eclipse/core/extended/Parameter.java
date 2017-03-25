@@ -14,38 +14,20 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.core.extended;
 
-import java.util.List;
-
-public class Story {
-
-	private String traceId;
-	private List<Chapter> chapters;
-	private Risk risk;
-
-	public Story() {
+public class Parameter {
+	private String parameter;
+	private boolean tracked;
+	public String getParameter() {
+		return parameter;
+	}
+	public void setParameter(String parameter) {
+		this.parameter = parameter;
+	}
+	public boolean isTracked() {
+		return tracked;
+	}
+	public void setTracked(boolean tracked) {
+		this.tracked = tracked;
 	}
 
-	public String getTraceId() {
-		return traceId;
-	}
-
-	public void setTraceId(String traceId) {
-		this.traceId = traceId;
-	}
-
-	public List<Chapter> getChapters() {
-		return chapters;
-	}
-
-	public void setChapters(List<Chapter> chapters) {
-		this.chapters = chapters;
-	}
-
-	public Risk getRisk() {
-		return risk;
-	}
-
-	public void setRisk(Risk risk) {
-		this.risk = risk;
-	}
 }

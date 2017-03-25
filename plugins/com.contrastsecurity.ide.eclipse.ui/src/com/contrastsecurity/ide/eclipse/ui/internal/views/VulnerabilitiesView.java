@@ -352,6 +352,9 @@ public class VulnerabilitiesView extends ViewPart {
 						} else {
 							refreshJob.cancel();
 						}
+						book.showPage(noVulnerabilitiesPage);
+						activePage = noVulnerabilitiesPage;
+						currentPage = noVulnerabilitiesPage;
 					}
 				});
 				return;

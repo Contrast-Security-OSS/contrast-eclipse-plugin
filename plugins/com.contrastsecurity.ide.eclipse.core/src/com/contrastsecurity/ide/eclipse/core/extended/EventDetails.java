@@ -16,36 +16,32 @@ package com.contrastsecurity.ide.eclipse.core.extended;
 
 import java.util.List;
 
-public class Story {
+public class EventDetails {
+	private boolean success;
+	private List<String> messages;
+	private Event event;
 
-	private String traceId;
-	private List<Chapter> chapters;
-	private Risk risk;
-
-	public Story() {
+	public void setSuccess(boolean success) {
+		this.success = success;
 	}
 
-	public String getTraceId() {
-		return traceId;
+	public boolean getSuccess() {
+		return this.success;
 	}
 
-	public void setTraceId(String traceId) {
-		this.traceId = traceId;
+	public void setMessages(List<String> messages) {
+		this.messages = messages;
 	}
 
-	public List<Chapter> getChapters() {
-		return chapters;
+	public List<String> getMessages() {
+		return this.messages;
 	}
 
-	public void setChapters(List<Chapter> chapters) {
-		this.chapters = chapters;
+	public void setEvent(Event event) {
+		this.event = event;
 	}
 
-	public Risk getRisk() {
-		return risk;
-	}
-
-	public void setRisk(Risk risk) {
-		this.risk = risk;
+	public Event getEvent() {
+		return this.event;
 	}
 }

@@ -14,38 +14,23 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.core.extended;
 
-import java.util.List;
+public class Stacktrace {
+	private String description;
+	private String type;
 
-public class Story {
-
-	private String traceId;
-	private List<Chapter> chapters;
-	private Risk risk;
-
-	public Story() {
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
-	public String getTraceId() {
-		return traceId;
+	public String getDescription() {
+		return this.description;
 	}
 
-	public void setTraceId(String traceId) {
-		this.traceId = traceId;
+	public void setType(String type) {
+		this.type = type;
 	}
 
-	public List<Chapter> getChapters() {
-		return chapters;
-	}
-
-	public void setChapters(List<Chapter> chapters) {
-		this.chapters = chapters;
-	}
-
-	public Risk getRisk() {
-		return risk;
-	}
-
-	public void setRisk(Risk risk) {
-		this.risk = risk;
+	public String getType() {
+		return this.type;
 	}
 }

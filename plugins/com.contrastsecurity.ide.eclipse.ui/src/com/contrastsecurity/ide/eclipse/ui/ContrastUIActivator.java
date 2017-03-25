@@ -132,5 +132,15 @@ public class ContrastUIActivator extends AbstractUIPlugin {
 		}
 		return orgUuid;
 	}
+	
+	public static String removeHtmlMarkup(String html) {
+		html = html.replace("<span class='normal-code'>", "");
+		html = html.replace("<span class='code-string'>", "");
+		html = html.replace("<span class='taint'>", "");
+		html = html.replace("<i>", "");
+		html = html.replace("</i>", "");
+		html = html.replaceAll("</span>", "");
+		return html;
+	}
 
 }

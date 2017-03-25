@@ -21,7 +21,7 @@ public class StoryResource {
 	private String success;
 	private List<String> messages;
 	private Story story;
-	
+
 	public StoryResource() {
 	}
 

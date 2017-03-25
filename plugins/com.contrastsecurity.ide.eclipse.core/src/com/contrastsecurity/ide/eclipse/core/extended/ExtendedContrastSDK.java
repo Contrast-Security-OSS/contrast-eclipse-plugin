@@ -51,8 +51,52 @@ public class ExtendedContrastSDK extends ContrastSDK {
 		super(user, serviceKey, apiKey);
 		this.gson = new Gson();
 	}
-	
-	public HttpRequestResource getHttpRequest(String orgUuid, String traceId) throws IOException, UnauthorizedException {
+
+	public EventSummaryResource getEventSummary(String orgUuid, String traceId) throws IOException, UnauthorizedException {
+		InputStream is = null;
+		InputStreamReader reader = null;
+		try {
+			String eventSummaryUrl = getEventSummaryUrl(orgUuid, traceId);
+			is = makeRequest(HttpMethod.GET, eventSummaryUrl);
+			reader = new InputStreamReader(is);
+			EventSummaryResource resource = gson.fromJson(reader, EventSummaryResource.class);
+			for (EventResource event:resource.getEvents()) {
+				EventDetails eventDetails = getEventDetails(orgUuid, traceId, event);
+				event.setEvent(eventDetails.getEvent());
+			}
+			return resource;
+		} finally {
+			IOUtils.closeQuietly(is);
+			IOUtils.closeQuietly(reader);
+		}
+	}
+
+	public EventDetails getEventDetails(String orgUuid, String traceId, EventResource event)
+			throws IOException, UnauthorizedException {
+		InputStream is = null;
+		InputStreamReader reader = null;
+		try {
+			String eventDetailsUrl = getEventDetailsUrl(orgUuid, traceId, event);
+			is = makeRequest(HttpMethod.GET, eventDetailsUrl);
+			reader = new InputStreamReader(is);
+			EventDetails resource = gson.fromJson(reader, EventDetails.class);
+			return resource;
+		} finally {
+			IOUtils.closeQuietly(is);
+			IOUtils.closeQuietly(reader);
+		}
+	}
+
+	private String getEventDetailsUrl(String orgUuid, String traceId, EventResource event) {
+		return String.format("/ng/%s/traces/%s/events/%s/details?expand=skip_links", orgUuid, traceId, event.getId());
+	}
+
+	private String getEventSummaryUrl(String orgUuid, String traceId) {
+		return String.format("/ng/%s/traces/%s/events/summary?expand=skip_links", orgUuid, traceId);
+	}
+
+	public HttpRequestResource getHttpRequest(String orgUuid, String traceId)
+			throws IOException, UnauthorizedException {
 		InputStream is = null;
 		InputStreamReader reader = null;
 		try {

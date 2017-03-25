@@ -32,20 +32,14 @@ public interface Constants {
 	static final String APPLICATION_ID = "applicationId";
 	static final long ALL_SERVERS = -1l;
 	static final String ALL_APPLICATIONS = "All applications";
+	static final String BLANK = "";
+	static final String MUSTACHE_NL = "{{{nl}}}";
 	// #0DA1A9
 	static final Color LINK_COLOR = new Color(Display.getDefault(), 13 , 161, 169);
+	// #bfbfbf
+	static final Color RULE_COLOR = new Color(Display.getDefault(), 191 , 191, 191);
+	
 	static final Color LINK_COLOR_HOVER = Display.getCurrent().getSystemColor(SWT.COLOR_LINK_FOREGROUND); //new Color(Display.getDefault(), 13 , 161, 169, 120);
 	static final int REFRESH_DELAY = 5 * 60 * 1000; // 5 minutes
-	static final Color NOTE_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
-	static final Color NOTE_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
-	//f98a1f 249,138,31
-	static final Color HIGH_COLOR_BACKGROUND = new Color(Display.getDefault(), 249 , 138, 31);
-	static final Color HIGH_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
-	static final Color MEDIUM_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-	static final Color MEDIUM_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
-	static final Color LOW_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-	static final Color LOW_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
-	static final Color CRITICAL_COLOR_BACKGROUND = Display.getDefault().getSystemColor(SWT.COLOR_RED);;
-	static final Color CRITICAL_COLOR_FOREGROUND = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
 	static final Font SEVERITY_FONT = JFaceResources.getHeaderFont();
 }

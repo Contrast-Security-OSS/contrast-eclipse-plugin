@@ -27,7 +27,7 @@ public class Chapter {
 	private String bodyFormat;
 	private Map<String, String> bodyFormatVariables;
 	private List<PropertyResource> propertyResources;
-	
+
 	public Chapter() {
 	}
 
