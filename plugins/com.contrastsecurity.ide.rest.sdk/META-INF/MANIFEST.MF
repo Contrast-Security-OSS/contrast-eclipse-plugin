@@ -5,9 +5,9 @@ Bundle-SymbolicName: com.contrastsecurity.ide.rest.sdk
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Contrast Security
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Require-Bundle: com.google.gson;bundle-version="2.7.0";visibility:=reexport,
+Require-Bundle: com.google.gson;visibility:=reexport,
  org.slf4j.api;bundle-version="1.7.2",
- org.apache.commons.codec;bundle-version="1.9.0";visibility:=reexport,
+ org.apache.commons.codec;visibility:=reexport,
  org.apache.commons.lang;bundle-version="2.6.0";visibility:=reexport,
  org.apache.commons.io;bundle-version="2.2.0";visibility:=reexport
 Bundle-ClassPath: lib/lombok-1.16.8.jar,

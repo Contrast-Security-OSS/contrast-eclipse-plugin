@@ -73,10 +73,10 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 				y = event.y + (event.height - extent.y) / 2;
 				if (((EventItem) element).getType() == null) {
 					event.gc.setForeground(Constants.LINK_COLOR);
-					Font font = JFaceResources.getFont("org.eclipse.debug.ui.consoleFont");
-					if (font != null) {
-						event.gc.setFont(font);
-					}
+//					Font font = JFaceResources.getFont("org.eclipse.debug.ui.consoleFont");
+//					if (font != null) {
+//						event.gc.setFont(font);
+//					}
 				} else {
 					event.gc.setForeground(Constants.RULE_COLOR);
 				}
@@ -87,7 +87,7 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 			}
 		} else {
 			if (event.index == 0) {
-				event.gc.setFont(JFaceResources.getHeaderFont());
+				//event.gc.setFont(JFaceResources.getHeaderFont());
 				event.gc.setForeground(Constants.RULE_COLOR);
 			}
 			int x = event.x + 5;
