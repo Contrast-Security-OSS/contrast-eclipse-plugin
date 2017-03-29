@@ -69,19 +69,9 @@ public class EventsTab extends AbstractTab {
 		viewer = new TreeViewer(getControl(), SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getTree().setLayoutData(gd);
-		//viewer.getTree().setHeaderVisible(true);
 
 		TreeViewerColumn typeColumn = new TreeViewerColumn(viewer, SWT.NONE);
-		//typeColumn.getColumn().setText("Type");
 		layout.setColumnData(typeColumn.getColumn(), new ColumnWeightData(400));
-
-//		TreeViewerColumn codeColumn = new TreeViewerColumn(viewer, SWT.NONE);
-//		codeColumn.getColumn().setText("Code");
-//		codeColumn.getColumn().setWidth(700);
-//
-//		TreeViewerColumn htmlColumn = new TreeViewerColumn(viewer, SWT.NONE);
-//		htmlColumn.getColumn().setText("Snapshot");
-//		htmlColumn.getColumn().setWidth(300);
 
 		viewer.setLabelProvider(new EventLabelProvider(viewer));
 		viewer.setContentProvider(new EventContentProvider());
@@ -114,7 +104,7 @@ public class EventsTab extends AbstractTab {
 										"Stacktrace Error", e1.getStatus());
 								return;
 							}
-							Job search = new Job("Searching...") {
+							Job search = new Job("Searching for code in workspace...") {
 								@Override
 								protected IStatus run(IProgressMonitor monitor) {
 									Set<IType> result = null;
