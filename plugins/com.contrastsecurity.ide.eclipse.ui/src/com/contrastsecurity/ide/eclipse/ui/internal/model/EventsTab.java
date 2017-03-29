@@ -69,21 +69,21 @@ public class EventsTab extends AbstractTab {
 		viewer = new TreeViewer(getControl(), SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getTree().setLayoutData(gd);
-		viewer.getTree().setHeaderVisible(true);
+		//viewer.getTree().setHeaderVisible(true);
 
 		TreeViewerColumn typeColumn = new TreeViewerColumn(viewer, SWT.NONE);
-		typeColumn.getColumn().setText("Type");
-		layout.setColumnData(typeColumn.getColumn(), new ColumnWeightData(200));
+		//typeColumn.getColumn().setText("Type");
+		layout.setColumnData(typeColumn.getColumn(), new ColumnWeightData(400));
 
-		TreeViewerColumn codeColumn = new TreeViewerColumn(viewer, SWT.NONE);
-		codeColumn.getColumn().setText("Code");
-		layout.setColumnData(codeColumn.getColumn(), new ColumnWeightData(300));
+//		TreeViewerColumn codeColumn = new TreeViewerColumn(viewer, SWT.NONE);
+//		codeColumn.getColumn().setText("Code");
+//		codeColumn.getColumn().setWidth(700);
+//
+//		TreeViewerColumn htmlColumn = new TreeViewerColumn(viewer, SWT.NONE);
+//		htmlColumn.getColumn().setText("Snapshot");
+//		htmlColumn.getColumn().setWidth(300);
 
-		TreeViewerColumn htmlColumn = new TreeViewerColumn(viewer, SWT.NONE);
-		htmlColumn.getColumn().setText("Snapshot");
-		layout.setColumnData(htmlColumn.getColumn(), new ColumnWeightData(200));
-
-		viewer.setLabelProvider(new EventLabelProvider());
+		viewer.setLabelProvider(new EventLabelProvider(viewer));
 		viewer.setContentProvider(new EventContentProvider());
 		viewer.getTree().addMouseListener(new MouseListener() {
 

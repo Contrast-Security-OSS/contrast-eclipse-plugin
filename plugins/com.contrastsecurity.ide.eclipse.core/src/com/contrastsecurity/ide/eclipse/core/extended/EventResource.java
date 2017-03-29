@@ -18,6 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventResource {
+	public static final String RED = "RED";
+	public static final String CONTENT = "CONTENT";
+	public static final String CODE = "CODE";
+	public static final String BOLD = "BOLD";
 	private int id;
 	private boolean important;
 	private String type;
@@ -127,18 +131,43 @@ public class EventResource {
 		if (items == null) {
 			if (event != null) {
 				List<EventItem> eventItems = new ArrayList<>();
-				EventItem eventItem = new EventItem(this, "", "at " + probableStartLocation, false);
+				//EventItem eventItem = new EventItem(this, "", "at " + probableStartLocation, false);
+				//eventItems.add(eventItem);
+				EventItem eventItem = new EventItem(this, BOLD, "Class.Method", false);
 				eventItems.add(eventItem);
-				eventItem = new EventItem(this, "Class.Method", event.getClazz() + '.' + event.getMethod(), false);
+				eventItem = new EventItem(this, CONTENT, event.getClazz() + '.' + event.getMethod(), false);
 				eventItems.add(eventItem);
-				eventItem = new EventItem(this, "Object", event.getfObject(), false);
+				eventItem = new EventItem(this, BOLD, "Object", false);
 				eventItems.add(eventItem);
-				eventItem = new EventItem(this, "Return", event.getfReturn(), false);
+				eventItem = new EventItem(this, CONTENT, event.getfObject(), false);
+				eventItems.add(eventItem);
+				eventItem = new EventItem(this, BOLD, "Return", false);
+				eventItems.add(eventItem);
+				eventItem = new EventItem(this, CONTENT, event.getfReturn(), false);
+				eventItems.add(eventItem);
+				eventItem = new EventItem(this, BOLD, "Parameters", false);
+				eventItems.add(eventItem);
+				if (event.getParameters() != null) {
+				for (Parameter paremeter:event.getParameters())
+					if (paremeter.getParameter() != null) {
+						eventItem = new EventItem(this, CONTENT, paremeter.getParameter(), false);
+						eventItems.add(eventItem);
+					}
+				}
+				eventItem = new EventItem(this, BOLD, "Stack Trace", false);
 				eventItems.add(eventItem);
 				if (event.getStacktraces() != null) {
+					boolean first = true;
 					for (Stacktrace stacktrace : event.getStacktraces()) {
-						eventItem = new EventItem(this, "", stacktrace.getDescription(), true);
-						eventItems.add(eventItem);
+						if (first) {
+							eventItem = new EventItem(this, RED, stacktrace.getDescription(), true);
+							eventItems.add(eventItem);
+							first = false;
+						} else {
+							eventItem = new EventItem(this, CODE, stacktrace.getDescription(), true);
+							eventItems.add(eventItem);
+							first = false;
+						}
 					}
 				}
 				items = eventItems.toArray(new EventItem[0]);
