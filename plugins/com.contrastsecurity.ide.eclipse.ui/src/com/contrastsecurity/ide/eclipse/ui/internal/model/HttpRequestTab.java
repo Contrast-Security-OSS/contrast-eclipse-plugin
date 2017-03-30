@@ -20,9 +20,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
+import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
+
 public class HttpRequestTab extends Composite {
 
 		private Text area;
+		private HttpRequestResource httpRequest;
 
 		public HttpRequestTab(Composite parent, int style) {
 		super(parent, style);
@@ -42,4 +46,19 @@ public class HttpRequestTab extends Composite {
 	public Text getArea() {
 		return area;
 	}
+
+	public HttpRequestResource getHttpRequest() {
+		return httpRequest;
+	}
+
+	public void setHttpRequest(HttpRequestResource httpRequest) {
+		this.httpRequest = httpRequest;
+		area.setText(Constants.BLANK);
+		if (httpRequest != null && httpRequest.getHttpRequest() != null && httpRequest.getHttpRequest().getFormattedText() != null) {
+			area.setText(httpRequest.getHttpRequest().getFormattedText().replace(Constants.MUSTACHE_NL, Constants.BLANK));
+		} else if (httpRequest != null && httpRequest.getReason() != null) {
+			area.setText(httpRequest.getReason());
+		}
+	}
+	
 }

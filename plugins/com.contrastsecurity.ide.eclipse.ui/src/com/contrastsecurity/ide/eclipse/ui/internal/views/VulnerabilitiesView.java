@@ -64,7 +64,9 @@ import com.contrastsecurity.http.TraceFilterForm;
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
+import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
 import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
+import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
 import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.job.RefreshJob;
@@ -237,12 +239,19 @@ public class VulnerabilitiesView extends ViewPart {
 						Trace trace = (Trace) selected;
 						if (cell != null && cell.getColumnIndex() == 2) {
 							StoryResource story = null;
+							EventSummaryResource eventSummary = null;
+							HttpRequestResource httpRequest = null;
 							try {
 								story = sdk.getStory(getOrgUuid(), trace.getUuid());
+								eventSummary = sdk.getEventSummary(ContrastUIActivator.getOrgUuid(), trace.getUuid());
+								httpRequest = sdk.getHttpRequest(ContrastUIActivator.getOrgUuid(), trace.getUuid());
 							} catch (IOException | UnauthorizedException e1) {
 								ContrastUIActivator.log(e1);
 							}
 							detailsPage.setStory(story);
+							detailsPage.setEventSummaryResource(eventSummary);
+							detailsPage.setHttpRequest(httpRequest);
+							detailsPage.createAdditionalTabs();
 							removeListeners(currentPage);
 							book.showPage(detailsPage);
 							detailsPage.setDefaultSelection();
