@@ -31,14 +31,6 @@ import com.contrastsecurity.ide.eclipse.core.extended.EventResource;
 
 public class EventLabelProvider extends OwnerDrawLabelProvider {
 
-	private static final String SPAN_OPENED = "<span";
-	private static final String SPAN_CLOSED = "</span>";
-	private static final String ITALIC_OPENED = "<i>";
-	private static final String ITALIC_CLOSED = "</i>";
-	private static final String SPAN_CLASS_CODE_STRING = "<span class='code-string'>";
-	private static final String SPAN_CLASS_NORMAL_CODE = "<span class='normal-code'>";
-	private static final String SPAN_CLASS_TAINT = "<span class='taint'>";
-	private static final int MAX_WIDTH = 400;
 	private TreeViewer viewer;
 
 	public EventLabelProvider(TreeViewer viewer) {
@@ -186,19 +178,19 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 	}
 
 	private int getMaxWidth(Event event, Font boldFont) {
-		int maxWidth = MAX_WIDTH;
+		int maxWidth = Constants.MAX_WIDTH;
 		EventResource[] input = (EventResource[]) viewer.getInput();
 		if (input != null) {
 			Font font = event.gc.getFont();
 			event.gc.setFont(boldFont);
 			for (EventResource eventResource:input) {
 				String str = eventResource.getRawCodeRecreation();
-				str = str.replace(SPAN_CLASS_CODE_STRING, "");
-				str = str.replace(SPAN_CLASS_NORMAL_CODE, "");
-				str = str.replace(SPAN_CLASS_TAINT, "");
-				str = str.replace(SPAN_CLOSED, "");
-				str = str.replace(ITALIC_OPENED, "");
-				str = str.replace(ITALIC_CLOSED, "");
+				str = str.replace(Constants.SPAN_CLASS_CODE_STRING, "");
+				str = str.replace(Constants.SPAN_CLASS_NORMAL_CODE, "");
+				str = str.replace(Constants.SPAN_CLASS_TAINT, "");
+				str = str.replace(Constants.SPAN_CLOSED, "");
+				str = str.replace(Constants.ITALIC_OPENED, "");
+				str = str.replace(Constants.ITALIC_CLOSED, "");
 				Point extent = event.gc.stringExtent(str);
 				maxWidth = Math.max(maxWidth, extent.x);
 			}
@@ -237,72 +229,89 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 		if (currentString == null || currentString.isEmpty()) {
 			return null;
 		}
-		if (currentString.startsWith(SPAN_CLASS_NORMAL_CODE)) {
-			currentString = currentString.substring(SPAN_CLASS_NORMAL_CODE.length());
-			int index = currentString.indexOf(SPAN_CLOSED);
+		if (currentString.startsWith(Constants.TAINT)) {
+			currentString = currentString.substring(Constants.TAINT.length());
+			int index = currentString.indexOf(Constants.TAINT_CLOSED);
 			if (index > -1) {
 				String str = currentString.substring(0, index);
-				//event.gc.setFont(boldFont);
+				event.gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
 				event.gc.drawString(str, x, event.y);
 				x = x + event.gc.stringExtent(str).x;
-				//event.gc.setFont(oldFont);
-				currentString = currentString.substring(str.length() + SPAN_CLOSED.length());
+				event.gc.setForeground(foreground);
+				currentString = currentString.substring(str.length() + Constants.TAINT_CLOSED.length());
 			} else {
 				//event.gc.setFont(boldFont);
 				event.gc.drawString(currentString, x, event.y);
 				//event.gc.setFont(oldFont);
 				return null;
 			}
-		} else if (currentString.startsWith(SPAN_CLASS_CODE_STRING)) {
-			currentString = currentString.substring(SPAN_CLASS_CODE_STRING.length());
-			int index = currentString.indexOf(SPAN_CLOSED);
+		}
+		if (currentString.startsWith(Constants.SPAN_CLASS_NORMAL_CODE)) {
+			currentString = currentString.substring(Constants.SPAN_CLASS_NORMAL_CODE.length());
+			int index = currentString.indexOf(Constants.SPAN_CLOSED);
+			if (index > -1) {
+				String str = currentString.substring(0, index);
+				//event.gc.setFont(boldFont);
+				event.gc.drawString(str, x, event.y);
+				x = x + event.gc.stringExtent(str).x;
+				//event.gc.setFont(oldFont);
+				currentString = currentString.substring(str.length() + Constants.SPAN_CLOSED.length());
+			} else {
+				//event.gc.setFont(boldFont);
+				event.gc.drawString(currentString, x, event.y);
+				//event.gc.setFont(oldFont);
+				return null;
+			}
+		} else if (currentString.startsWith(Constants.SPAN_CLASS_CODE_STRING)) {
+			currentString = currentString.substring(Constants.SPAN_CLASS_CODE_STRING.length());
+			int index = currentString.indexOf(Constants.SPAN_CLOSED);
 			if (index > -1) {
 				String str = currentString.substring(0, index);
 				event.gc.setForeground(Constants.LINK_COLOR2);
 				event.gc.drawString(str, x, event.y);
 				x = x + event.gc.stringExtent(str).x;
 				event.gc.setForeground(foreground);
-				currentString = currentString.substring(str.length() + SPAN_CLOSED.length());
+				currentString = currentString.substring(str.length() + Constants.SPAN_CLOSED.length());
 			} else {
 				//event.gc.setFont(boldFont);
 				event.gc.drawString(currentString, x, event.y);
 				//event.gc.setFont(oldFont);
 				return null;
 			}
-		} else if (currentString.startsWith(SPAN_CLASS_TAINT)) {
-			currentString = currentString.substring(SPAN_CLASS_TAINT.length());
-			int index = currentString.indexOf(SPAN_CLOSED);
+		} else if (currentString.startsWith(Constants.SPAN_CLASS_TAINT)) {
+			currentString = currentString.substring(Constants.SPAN_CLASS_TAINT.length());
+			int index = currentString.indexOf(Constants.SPAN_CLOSED);
 			if (index > -1) {
 				String str = currentString.substring(0, index);
 				event.gc.setForeground(Constants.CREATION_COLOR);
 				event.gc.drawString(str, x, event.y);
 				x = x + event.gc.stringExtent(str).x;
 				event.gc.setForeground(foreground);
-				currentString = currentString.substring(str.length() + SPAN_CLOSED.length());
+				currentString = currentString.substring(str.length() + Constants.SPAN_CLOSED.length());
 			} else {
 				//event.gc.setFont(boldFont);
 				event.gc.drawString(currentString, x, event.y);
 				//event.gc.setFont(oldFont);
 				return null;
 			}
-		} else if (currentString.startsWith(ITALIC_OPENED)) {
-			currentString = currentString.substring(ITALIC_OPENED.length());
-			int index = currentString.indexOf(ITALIC_CLOSED);
+		} else if (currentString.startsWith(Constants.ITALIC_OPENED)) {
+			currentString = currentString.substring(Constants.ITALIC_OPENED.length());
+			int index = currentString.indexOf(Constants.ITALIC_CLOSED);
 			if (index > -1) {
 				String str = currentString.substring(0, index);
 				event.gc.setFont(italicFont);
 				event.gc.drawString(str, x, event.y);
 				x = x + event.gc.stringExtent(str).x;
 				event.gc.setFont(oldFont);
-				currentString = currentString.substring(str.length() + ITALIC_CLOSED.length());
+				currentString = currentString.substring(str.length() + Constants.ITALIC_CLOSED.length());
 			} else {
 				//event.gc.setFont(boldFont);
 				event.gc.drawString(currentString, x, event.y);
 				//event.gc.setFont(oldFont);
 				return null;
 			}
-		} else if (currentString.contains(SPAN_OPENED)) {
-			int index = currentString.indexOf(SPAN_OPENED);
+		} else if (currentString.contains(Constants.SPAN_OPENED)) {
+			int index = currentString.indexOf(Constants.SPAN_OPENED);
 			if (index > -1) {
 				String str = currentString.substring(0, index);
 				//event.gc.setFont(boldFont);

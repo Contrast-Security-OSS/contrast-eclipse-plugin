@@ -15,17 +15,19 @@
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Display;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
 
 public class HttpRequestTab extends Composite {
 
-		private Text area;
+		private StyledText area;
 		private HttpRequestResource httpRequest;
 
 		public HttpRequestTab(Composite parent, int style) {
@@ -37,13 +39,13 @@ public class HttpRequestTab extends Composite {
 		control.setLayout(new GridLayout());
 		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		control.setLayoutData(gd);
-		area = new Text(control, SWT.MULTI|SWT.V_SCROLL|SWT.H_SCROLL);
+		area = new StyledText(control, SWT.MULTI|SWT.V_SCROLL|SWT.H_SCROLL);
 		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		area.setLayoutData(gd);
 		area.setEditable(false);
 	}
 
-	public Text getArea() {
+	public StyledText getArea() {
 		return area;
 	}
 
@@ -58,6 +60,22 @@ public class HttpRequestTab extends Composite {
 			area.setText(httpRequest.getHttpRequest().getFormattedText().replace(Constants.MUSTACHE_NL, Constants.BLANK));
 		} else if (httpRequest != null && httpRequest.getReason() != null) {
 			area.setText(httpRequest.getReason());
+		}
+		String text = area.getText();
+		if (text.contains(Constants.TAINT) && text.contains(Constants.TAINT_CLOSED)) {
+			String currentString = text;
+			int start = text.indexOf(Constants.TAINT);
+			currentString = currentString.replace(Constants.TAINT, "");
+			int end = text.indexOf(Constants.TAINT_CLOSED);
+			if (end > start) {
+				currentString = currentString.replace(Constants.TAINT_CLOSED, "");
+				area.setText(currentString);
+				StyleRange styleRange = new StyleRange();
+				styleRange.start = start;
+				styleRange.length = end - start;
+				styleRange.foreground = Display.getCurrent().getSystemColor(SWT.COLOR_RED);
+				area.setStyleRange(styleRange);
+			}
 		}
 	}
 	

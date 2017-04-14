@@ -24,7 +24,7 @@ import com.contrastsecurity.models.Organizations;
 import com.contrastsecurity.sdk.ContrastSDK;
 
 public class Util {
-	
+
 	public static Organization getDefaultOrganization(ContrastSDK sdk) throws IOException, UnauthorizedException {
 		if (sdk == null) {
 			return null;
@@ -32,7 +32,7 @@ public class Util {
 		Organizations organizations = sdk.getProfileDefaultOrganizations();
 		return organizations.getOrganization();
 	}
-	
+
 	public static String getDefaultOrganizationUuid() throws IOException, UnauthorizedException {
 		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
 		String uuid = prefs.get(Constants.ORGUUID, null);
@@ -45,6 +45,16 @@ public class Util {
 			}
 		}
 		return uuid;
+	}
+
+	public static boolean hasConfiguration() {
+		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
+		// String uuid = prefs.get(Constants.ORGUUID, null);
+		String apiKey = prefs.get(Constants.API_KEY, null);
+		String serviceKey = prefs.get(Constants.SERVICE_KEY, null);
+		String username = prefs.get(Constants.USERNAME, null);
+		return apiKey != null && serviceKey != null && username != null && !apiKey.isEmpty() && !serviceKey.isEmpty()
+				&& !username.isEmpty();
 	}
 
 }

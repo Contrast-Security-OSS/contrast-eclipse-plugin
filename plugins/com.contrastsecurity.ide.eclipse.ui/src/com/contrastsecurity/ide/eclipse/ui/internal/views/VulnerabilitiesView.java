@@ -40,6 +40,7 @@ import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Point;
@@ -72,6 +73,7 @@ import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.job.RefreshJob;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.AbstractPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
+import com.contrastsecurity.ide.eclipse.ui.internal.model.ConfigurationPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.LoadingPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.MainPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ServerUIAdapter;
@@ -107,6 +109,7 @@ public class VulnerabilitiesView extends ViewPart {
 	private PageBook book;
 	private VulnerabilityDetailsPage detailsPage;
 	private AbstractPage loadingPage;
+	private AbstractPage configurationPage;
 	private RefreshJob refreshJob;
 
 	private ISelectionChangedListener listener = new ISelectionChangedListener() {
@@ -153,6 +156,7 @@ public class VulnerabilitiesView extends ViewPart {
 
 		detailsPage = new VulnerabilityDetailsPage(book, SWT.NONE, this);
 		loadingPage = new LoadingPage(book, SWT.NONE, this);
+		configurationPage = new ConfigurationPage(book, SWT.NONE, this);
 
 		statusLabel = new Label(composite, SWT.NONE);
 		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
@@ -174,6 +178,12 @@ public class VulnerabilitiesView extends ViewPart {
 		book.showPage(loadingPage);
 		activePage = loadingPage;
 		refreshAction.setEnabled(false);
+	}
+	
+	public void showConfigurationPage() {
+		book.showPage(configurationPage);
+		activePage = configurationPage;
+		refreshAction.setEnabled(Util.hasConfiguration());
 	}
 
 	private VulnerabilityPage createNoVulnerabilitiesPage(PageBook book) {
@@ -238,26 +248,30 @@ public class VulnerabilitiesView extends ViewPart {
 					if (selected instanceof Trace) {
 						Trace trace = (Trace) selected;
 						if (cell != null && cell.getColumnIndex() == 2) {
-							StoryResource story = null;
-							EventSummaryResource eventSummary = null;
-							HttpRequestResource httpRequest = null;
-							try {
-								story = sdk.getStory(getOrgUuid(), trace.getUuid());
-								eventSummary = sdk.getEventSummary(ContrastUIActivator.getOrgUuid(), trace.getUuid());
-								httpRequest = sdk.getHttpRequest(ContrastUIActivator.getOrgUuid(), trace.getUuid());
-							} catch (IOException | UnauthorizedException e1) {
-								ContrastUIActivator.log(e1);
-							}
-							detailsPage.setStory(story);
-							detailsPage.setEventSummaryResource(eventSummary);
-							detailsPage.setHttpRequest(httpRequest);
-							detailsPage.createAdditionalTabs();
-							removeListeners(currentPage);
-							book.showPage(detailsPage);
-							detailsPage.setDefaultSelection();
-							activePage = detailsPage;
-							refreshAction.setEnabled(false);
-							detailsPage.setTrace(trace);
+							BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
+								public void run() {
+									StoryResource story = null;
+									EventSummaryResource eventSummary = null;
+									HttpRequestResource httpRequest = null;
+									try {
+										story = sdk.getStory(getOrgUuid(), trace.getUuid());
+										eventSummary = sdk.getEventSummary(ContrastUIActivator.getOrgUuid(), trace.getUuid());
+										httpRequest = sdk.getHttpRequest(ContrastUIActivator.getOrgUuid(), trace.getUuid());
+									} catch (IOException | UnauthorizedException e1) {
+										ContrastUIActivator.log(e1);
+									}
+									detailsPage.setStory(story);
+									detailsPage.setEventSummaryResource(eventSummary);
+									detailsPage.setHttpRequest(httpRequest);
+									detailsPage.createAdditionalTabs();
+									removeListeners(currentPage);
+									book.showPage(detailsPage);
+									detailsPage.setDefaultSelection();
+									activePage = detailsPage;
+									refreshAction.setEnabled(false);
+									detailsPage.setTrace(trace);
+								}
+							});
 						}
 						if (cell != null && cell.getColumnIndex() == 3) {
 							try {
@@ -288,13 +302,14 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	public void refreshTraces() {
-		if (activePage != mainPage && activePage != noVulnerabilitiesPage) {
+		if (activePage != mainPage && activePage != noVulnerabilitiesPage && activePage != configurationPage) {
 			return;
 		}
 		Display.getDefault().syncExec(new Runnable() {
 
 			@Override
 			public void run() {
+				statusLabel.setText("");
 				if (viewer != null && !viewer.getTable().isDisposed()) {
 					startRefreshTraces();
 				} else {
@@ -306,7 +321,7 @@ public class VulnerabilitiesView extends ViewPart {
 		String orgUuid;
 		try {
 			orgUuid = Util.getDefaultOrganizationUuid();
-		} catch (IOException | UnauthorizedException e) {
+		} catch (Exception e) {
 			ContrastUIActivator.log(e);
 			Display.getDefault().syncExec(new Runnable() {
 
@@ -321,7 +336,7 @@ public class VulnerabilitiesView extends ViewPart {
 			});
 			return;
 		}
-		if (orgUuid != null) {
+		if (orgUuid != null && !orgUuid.isEmpty()) {
 			try {
 				final Long[] selectedServerId = new Long[1];
 				final String[] selectedAppId = new String[1];
@@ -350,7 +365,7 @@ public class VulnerabilitiesView extends ViewPart {
 						}
 					}
 				});
-			} catch (IOException | UnauthorizedException e) {
+			} catch (Exception e) {
 				ContrastUIActivator.log(e);
 				Display.getDefault().syncExec(new Runnable() {
 
@@ -364,6 +379,7 @@ public class VulnerabilitiesView extends ViewPart {
 						book.showPage(noVulnerabilitiesPage);
 						activePage = noVulnerabilitiesPage;
 						currentPage = noVulnerabilitiesPage;
+						refreshAction.setEnabled(true);
 					}
 				});
 				return;
@@ -371,9 +387,23 @@ public class VulnerabilitiesView extends ViewPart {
 				if (currentPage == noVulnerabilitiesPage || currentPage == mainPage) {
 					addListeners(currentPage);
 				}
+				if (Util.hasConfiguration()) {
+					refreshAction.setEnabled(true);
+				}
 			}
 
 		} else {
+			Display.getDefault().syncExec(new Runnable() {
+
+				@Override
+				public void run() {
+					showConfigurationPage();
+					if (Util.hasConfiguration()) {
+						refreshAction.setEnabled(true);
+					}
+				}
+				
+			});
 			if (currentPage == noVulnerabilitiesPage || currentPage == mainPage) {
 				addListeners(currentPage);
 			}
@@ -493,14 +523,14 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
-		// manager.add(openPreferencesPage);
+		manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		// manager.add(new Separator());
 		manager.add(saveFilterAction);
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
-		// manager.add(openPreferencesPage);
+		manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		manager.add(saveFilterAction);
 		// Other plug-ins can contribute there actions here
@@ -508,7 +538,7 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
-		// manager.add(openPreferencesPage);
+		manager.add(openPreferencesPage);
 		manager.add(refreshAction);
 		manager.add(saveFilterAction);
 	}
@@ -519,6 +549,8 @@ public class VulnerabilitiesView extends ViewPart {
 				PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getSite().getShell(),
 						ContrastPreferencesPage.ID, null, null);
 				dialog.open();
+				sdk = ContrastCoreActivator.getContrastSDK();
+				startRefreshJob();
 			}
 		};
 		openPreferencesPage.setText("Contrast Preferences Page");
@@ -553,8 +585,6 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	protected void dblClickAction(Object object) {
-		// TODO Auto-generated method stub
-
 	}
 
 	protected void saveFilter() {
@@ -632,6 +662,14 @@ public class VulnerabilitiesView extends ViewPart {
 		String urlStr = teamServerUrl + "/static/ng/index.html#/" + getOrgUuid() + "/vulns/" + traceId + "/overview";
 		URL url = new URL(urlStr);
 		return url;
+	}
+
+	public ExtendedContrastSDK getSdk() {
+		return sdk;
+	}
+
+	public void refreshSdk() {
+		sdk = ContrastCoreActivator.getContrastSDK();
 	}
 
 }
