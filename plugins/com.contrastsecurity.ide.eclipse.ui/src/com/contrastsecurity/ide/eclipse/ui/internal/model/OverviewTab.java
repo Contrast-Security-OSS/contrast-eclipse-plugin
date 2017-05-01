@@ -14,11 +14,9 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
@@ -29,7 +27,6 @@ import org.eclipse.swt.widgets.Label;
 import org.unbescape.html.HtmlEscape;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
-import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.extended.Chapter;
 import com.contrastsecurity.ide.eclipse.core.extended.PropertyResource;
 import com.contrastsecurity.ide.eclipse.core.extended.Risk;
@@ -120,6 +117,8 @@ public class OverviewTab extends AbstractTab {
 		// FIXME
 		text = text.replace("{{#code}}", "");
 		text = text.replace("{{/code}}", "");
+		text = text.replace("{{#p}}", "");
+		text = text.replace("{{/p}}", "");
 		return text;
 	}
 

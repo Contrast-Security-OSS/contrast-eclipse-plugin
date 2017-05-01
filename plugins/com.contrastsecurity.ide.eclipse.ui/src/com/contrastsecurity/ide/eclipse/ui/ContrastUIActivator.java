@@ -31,6 +31,7 @@ import org.osgi.framework.BundleContext;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.ide.eclipse.core.Util;
+import com.contrastsecurity.ide.eclipse.ui.cache.ContrastCache;
 import com.contrastsecurity.models.Trace;
 
 /**
@@ -44,6 +45,8 @@ public class ContrastUIActivator extends AbstractUIPlugin {
 	// The shared instance
 	private static ContrastUIActivator plugin;
 	
+	private static ContrastCache contrastCache = new ContrastCache();
+
 	/**
 	 * The constructor
 	 */
@@ -189,6 +192,10 @@ public class ContrastUIActivator extends AbstractUIPlugin {
 				break;
 			}
 		}		
+	}
+
+	public static ContrastCache getContrastCache() {
+		return contrastCache;
 	}
 
 }

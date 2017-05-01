@@ -14,7 +14,8 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import java.net.URLDecoder;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -26,13 +27,14 @@ import org.unbescape.html.HtmlEscape;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
+import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 
 public class HttpRequestTab extends Composite {
 
 		private StyledText area;
 		private HttpRequestResource httpRequest;
 
-		public HttpRequestTab(Composite parent, int style) {
+	public HttpRequestTab(Composite parent, int style) {
 		super(parent, style);
 		setLayout(new GridLayout());
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -41,7 +43,7 @@ public class HttpRequestTab extends Composite {
 		control.setLayout(new GridLayout());
 		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		control.setLayoutData(gd);
-		area = new StyledText(control, SWT.MULTI|SWT.V_SCROLL|SWT.H_SCROLL);
+		area = new StyledText(control, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		area.setLayoutData(gd);
 		area.setEditable(false);
@@ -66,6 +68,14 @@ public class HttpRequestTab extends Composite {
 		String text = area.getText();
 		//text = StringEscapeUtils.unescapeHtml(text);
 		text = HtmlEscape.unescapeHtml(text);
+		try {
+			text = URLDecoder.decode(text, "UTF-8");
+		} catch (Exception e) {
+			// ignore
+			if (ContrastUIActivator.getDefault().isDebugging()) {
+				ContrastUIActivator.log(e);
+			}
+		}
 		if (text.contains(Constants.TAINT) && text.contains(Constants.TAINT_CLOSED)) {
 			String currentString = text;
 			int start = text.indexOf(Constants.TAINT);

@@ -70,6 +70,8 @@ import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
 import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
+import com.contrastsecurity.ide.eclipse.ui.cache.ContrastCache;
+import com.contrastsecurity.ide.eclipse.ui.cache.Key;
 import com.contrastsecurity.ide.eclipse.ui.internal.job.RefreshJob;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.AbstractPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
@@ -102,6 +104,7 @@ public class VulnerabilitiesView extends ViewPart {
 	private Action doubleClickAction;
 	private Label statusLabel;
 	private ExtendedContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
+	private ContrastCache contrastCache = ContrastUIActivator.getContrastCache();
 	private VulnerabilityPage mainPage;
 	private VulnerabilityPage noVulnerabilitiesPage;
 	private VulnerabilityPage currentPage;
@@ -255,9 +258,10 @@ public class VulnerabilitiesView extends ViewPart {
 									EventSummaryResource eventSummary = null;
 									HttpRequestResource httpRequest = null;
 									try {
-										story = sdk.getStory(getOrgUuid(), trace.getUuid());
-										eventSummary = sdk.getEventSummary(ContrastUIActivator.getOrgUuid(), trace.getUuid());
-										httpRequest = sdk.getHttpRequest(ContrastUIActivator.getOrgUuid(), trace.getUuid());
+										Key key = new Key(ContrastUIActivator.getOrgUuid(), trace.getUuid());
+										story = getStory(key);
+										eventSummary = getEventSummary(key);
+										httpRequest = getHttpRequest(key);
 									} catch (IOException | UnauthorizedException e1) {
 										ContrastUIActivator.log(e1);
 									}
@@ -272,6 +276,7 @@ public class VulnerabilitiesView extends ViewPart {
 									refreshAction.setEnabled(false);
 									detailsPage.setTrace(trace);
 								}
+
 							});
 						}
 						if (cell != null && cell.getColumnIndex() == 3) {
@@ -302,6 +307,33 @@ public class VulnerabilitiesView extends ViewPart {
 		viewer.getTable().setLayout(layout);
 	}
 
+
+	private StoryResource getStory(Key key) throws IOException, UnauthorizedException {
+		StoryResource story = contrastCache.getStoryResources().get(key);
+		if (story == null) {
+			story = sdk.getStory(key.getOrgUuid(), key.getTraceId());
+			contrastCache.getStoryResources().put(key, story);
+		}
+		return story;
+	}
+
+	private EventSummaryResource getEventSummary(Key key) throws IOException, UnauthorizedException {
+		EventSummaryResource  eventSummary = contrastCache.getEventSummaryResources().get(key);
+		if (eventSummary == null) {
+			eventSummary = sdk.getEventSummary(key.getOrgUuid(), key.getTraceId());
+			contrastCache.getEventSummaryResources().put(key, eventSummary);
+		}
+		return eventSummary;
+	}
+
+	private HttpRequestResource getHttpRequest(Key key) throws IOException, UnauthorizedException {
+		HttpRequestResource httpRequest = contrastCache.getHttpRequestResources().get(key);
+		if (httpRequest == null) {
+			httpRequest = sdk.getHttpRequest(key.getOrgUuid(), key.getTraceId());
+			contrastCache.getHttpRequestResources().put(key, httpRequest);
+		}
+		return httpRequest;
+	}
 	public void refreshTraces() {
 		if (activePage != mainPage && activePage != noVulnerabilitiesPage && activePage != configurationPage) {
 			return;
@@ -457,6 +489,7 @@ public class VulnerabilitiesView extends ViewPart {
 		refreshAction.setEnabled(false);
 		removeListeners(mainPage);
 		removeListeners(noVulnerabilitiesPage);
+		contrastCache.clear();
 	}
 
 	private Traces getTraces(String orgUuid, Long serverId, String appId) throws IOException, UnauthorizedException {
