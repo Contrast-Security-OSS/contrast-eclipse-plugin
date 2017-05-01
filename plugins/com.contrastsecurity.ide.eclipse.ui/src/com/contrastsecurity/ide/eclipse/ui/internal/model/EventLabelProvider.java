@@ -14,6 +14,7 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -24,6 +25,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.unbescape.html.HtmlEscape;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.EventItem;
@@ -31,6 +33,7 @@ import com.contrastsecurity.ide.eclipse.core.extended.EventResource;
 
 public class EventLabelProvider extends OwnerDrawLabelProvider {
 
+	private static final String INTERESTING_SECURITY_EVENT_OCCURED_ON_DATA = "INTERESTING SECURITY EVENT OCCURED ON DATA";
 	private TreeViewer viewer;
 
 	public EventLabelProvider(TreeViewer viewer) {
@@ -93,6 +96,11 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 				bounds.height += 5;
 				event.gc.fillRectangle(bounds);
 				//event.gc.setClipping(clipping.x, clipping.y, clipping.width, clipping.height);
+				String value = eventItem.getValue();
+				if (value != null) {
+					//value = StringEscapeUtils.unescapeHtml(value);
+					value = HtmlEscape.unescapeHtml(value);
+				}
 				event.gc.drawString(eventItem.getValue(), x, event.y);
 			} finally {
 				if (boldFont != null) {
@@ -109,7 +117,7 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 				Color foreground = event.gc.getForeground();
 				Rectangle clipping = event.gc.getClipping();
 				// event.gc.setLineWidth(1);
-				Point size = event.gc.stringExtent("INTERESTING SECURITY EVENT OCCURED ON DATA");
+				Point size = event.gc.stringExtent(INTERESTING_SECURITY_EVENT_OCCURED_ON_DATA);
 				Color color = getColor(eventResource.getType());
 				if (color != null) {
 					event.gc.setBackground(color);
@@ -125,7 +133,7 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 //				}
 				String type = eventResource.getTypeDescription().toUpperCase();
 				event.gc.drawString(type, event.x + 30, event.y + 2);
-				size = event.gc.stringExtent("INTERESTING SECURITY EVENT OCCURED ON DATA");
+				size = event.gc.stringExtent(INTERESTING_SECURITY_EVENT_OCCURED_ON_DATA);
 				event.gc.setBackground(background);
 				event.gc.setForeground(foreground);
 				Font oldFont = event.gc.getFont();
@@ -149,6 +157,10 @@ public class EventLabelProvider extends OwnerDrawLabelProvider {
 						event.gc.setClipping(clipping.x, clipping.y, x + maxWidth, clipping.height);
 					}
 					String currentString = eventResource.getRawCodeRecreation();
+					if (currentString != null) {
+						//currentString = StringEscapeUtils.unescapeHtml(currentString);
+						currentString = HtmlEscape.unescapeHtml(currentString);
+					}
 					Helper helper = new Helper();
 					helper.currentString = currentString;
 					helper.x = x;

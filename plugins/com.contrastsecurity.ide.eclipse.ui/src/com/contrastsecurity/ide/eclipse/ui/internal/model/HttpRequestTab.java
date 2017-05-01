@@ -14,6 +14,7 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -21,6 +22,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.unbescape.html.HtmlEscape;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
@@ -62,6 +64,8 @@ public class HttpRequestTab extends Composite {
 			area.setText(httpRequest.getReason());
 		}
 		String text = area.getText();
+		//text = StringEscapeUtils.unescapeHtml(text);
+		text = HtmlEscape.unescapeHtml(text);
 		if (text.contains(Constants.TAINT) && text.contains(Constants.TAINT_CLOSED)) {
 			String currentString = text;
 			int start = text.indexOf(Constants.TAINT);

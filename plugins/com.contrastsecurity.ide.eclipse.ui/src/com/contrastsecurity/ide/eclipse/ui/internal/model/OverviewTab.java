@@ -14,8 +14,11 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
@@ -23,12 +26,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.unbescape.html.HtmlEscape;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.extended.Chapter;
 import com.contrastsecurity.ide.eclipse.core.extended.PropertyResource;
 import com.contrastsecurity.ide.eclipse.core.extended.Risk;
 import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
+import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 
 public class OverviewTab extends AbstractTab {
 
@@ -57,14 +63,13 @@ public class OverviewTab extends AbstractTab {
 						areaText = property.getName() == null ? Constants.BLANK : property.getName();
 					}
 				}
-
-				new Label(control, SWT.NONE);
+				//new Label(control, SWT.NONE);
 				Label label = new Label(control, SWT.WRAP | SWT.LEFT);
 				GridData gd = new GridData(SWT.HORIZONTAL, SWT.TOP, true, false, 1, 1);
 				label.setLayoutData(gd);
 				text = parseMustache(text);
 				label.setText(text);
-				new Label(control, SWT.NONE);
+				//new Label(control, SWT.NONE);
 
 				if (!areaText.isEmpty()) {
 					final StyledText textArea = new StyledText(control, SWT.WRAP);
@@ -80,7 +85,7 @@ public class OverviewTab extends AbstractTab {
 					textArea.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GRAY));
 					areaText = parseMustache(areaText);
 					textArea.setText(areaText);
-					new Label(control, SWT.NONE);
+					//new Label(control, SWT.NONE);
 				}
 			}
 			if (story.getStory().getRisk() != null) {
@@ -92,7 +97,7 @@ public class OverviewTab extends AbstractTab {
 					label.setLayoutData(gd);
 					riskText = parseMustache(riskText);
 					label.setText(riskText);
-					new Label(control, SWT.NONE);
+					//new Label(control, SWT.NONE);
 				}
 			}
 		}
@@ -100,6 +105,16 @@ public class OverviewTab extends AbstractTab {
 
 	private String parseMustache(String text) {
 		text = text.replace(Constants.MUSTACHE_NL, Constants.BLANK);
+		//text = StringEscapeUtils.unescapeHtml(text);
+		text = HtmlEscape.unescapeHtml(text);
+		try {
+			text = URLDecoder.decode(text, "UTF-8");
+		} catch (Exception e) {
+			// ignore
+			if (ContrastUIActivator.getDefault().isDebugging()) {
+				ContrastUIActivator.log(e);
+			}
+		}
 		text = text.replace("&lt;", "<");
 		text = text.replace("&gt;", ">");
 		// FIXME

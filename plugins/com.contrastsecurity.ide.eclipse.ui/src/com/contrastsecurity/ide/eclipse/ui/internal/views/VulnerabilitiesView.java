@@ -226,7 +226,7 @@ public class VulnerabilitiesView extends ViewPart {
 		column.setText("Vulnerability");
 
 		column = new TableColumn(viewer.getTable(), SWT.NONE);
-		column.setWidth(150);
+		column.setWidth(400);
 		column.setText("Actions");
 		viewer.getTable().addMouseListener(new MouseListener() {
 
@@ -247,7 +247,8 @@ public class VulnerabilitiesView extends ViewPart {
 					Object selected = ((IStructuredSelection) sel).getFirstElement();
 					if (selected instanceof Trace) {
 						Trace trace = (Trace) selected;
-						if (cell != null && cell.getColumnIndex() == 2) {
+						boolean unlicensed = trace.getTitle().contains(Constants.UNLICENSED);
+						if (cell != null && cell.getColumnIndex() == 2 && !unlicensed) {
 							BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
 								public void run() {
 									StoryResource story = null;

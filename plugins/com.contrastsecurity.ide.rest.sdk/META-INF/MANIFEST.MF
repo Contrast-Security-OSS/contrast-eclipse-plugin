@@ -12,7 +12,8 @@ Require-Bundle: com.google.gson;visibility:=reexport,
  org.apache.commons.io;bundle-version="2.2.0";visibility:=reexport
 Bundle-ClassPath: lib/lombok-1.16.8.jar,
  .,
- lib/contrast-sdk-java-2.3.jar
+ lib/contrast-sdk-java-2.3.jar,
+ lib/unbescape-1.1.3.RELEASE.jar
 Export-Package: com.contrastsecurity.exceptions,
  com.contrastsecurity.http,
  com.contrastsecurity.models,
@@ -26,4 +27,13 @@ Export-Package: com.contrastsecurity.exceptions,
  lombok.extern.log4j,
  lombok.extern.slf4j,
  lombok.javac.apt,
- lombok.launch
+ lombok.launch,
+ org.unbescape.css,
+ org.unbescape.csv,
+ org.unbescape.html,
+ org.unbescape.java,
+ org.unbescape.javascript,
+ org.unbescape.json,
+ org.unbescape.properties,
+ org.unbescape.uri,
+ org.unbescape.xml

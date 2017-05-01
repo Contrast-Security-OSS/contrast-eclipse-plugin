@@ -34,8 +34,12 @@ public interface Constants {
 	static final String ALL_APPLICATIONS = "All applications";
 	static final String BLANK = "";
 	static final String MUSTACHE_NL = "{{{nl}}}";
+	static final String UNLICENSED = "{{#unlicensed}}";
+	
 	// #0DA1A9
 	static final Color LINK_COLOR = new Color(Display.getDefault(), 13, 161, 169);
+	// #969494
+	static final Color UNLICENSED_COLOR = new Color(Display.getDefault(), 150, 148, 148);
 	// #bfbfbf
 	static final Color RULE_COLOR = new Color(Display.getDefault(), 191, 191, 191);
 
