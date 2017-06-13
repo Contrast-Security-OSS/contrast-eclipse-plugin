@@ -15,6 +15,7 @@
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
 import java.net.URLDecoder;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -56,8 +57,14 @@ public class OverviewTab extends AbstractTab {
 				if (areaText.isEmpty()) {
 					List<PropertyResource> properties = chapter.getPropertyResources();
 					if (properties != null && properties.size() > 0) {
-						PropertyResource property = properties.get(0);
-						areaText = property.getName() == null ? Constants.BLANK : property.getName();
+						Iterator<PropertyResource> iter = properties.iterator();
+						while (iter.hasNext()) {
+							PropertyResource property = iter.next();
+							areaText += property.getName() == null ? Constants.BLANK : property.getName();
+							if (iter.hasNext()) {
+								areaText += "\n";
+							}
+						}
 					}
 				}
 				//new Label(control, SWT.NONE);
