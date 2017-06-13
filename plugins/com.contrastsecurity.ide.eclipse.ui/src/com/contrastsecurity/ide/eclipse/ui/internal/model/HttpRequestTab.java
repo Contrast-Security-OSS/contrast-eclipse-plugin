@@ -80,7 +80,7 @@ public class HttpRequestTab extends Composite {
 			String currentString = text;
 			int start = text.indexOf(Constants.TAINT);
 			currentString = currentString.replace(Constants.TAINT, "");
-			int end = text.indexOf(Constants.TAINT_CLOSED);
+			int end = currentString.indexOf(Constants.TAINT_CLOSED);
 			if (end > start) {
 				currentString = currentString.replace(Constants.TAINT_CLOSED, "");
 				area.setText(currentString);
