@@ -83,6 +83,7 @@ import com.contrastsecurity.ide.eclipse.ui.internal.model.LoadingPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.MainPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ServerUIAdapter;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.VulnerabilityDetailsPage;
+import com.contrastsecurity.ide.eclipse.ui.internal.model.VulnerabilityDetailsTab;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.VulnerabilityLabelProvider;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.VulnerabilityPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage;
@@ -92,13 +93,34 @@ import com.contrastsecurity.models.Traces;
 /**
  * Vulnerabilities View
  */
-
 public class VulnerabilitiesView extends ViewPart {
 
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.views.VulnerabilitiesView";
+
+	/**
+	 * No action should be performed
+	 */
+	private final static int NO_ACTION = -1;
+	/**
+	 * The mouse event should trigger to show vulnerability details view on overview
+	 * tab.
+	 */
+	private final static int VIEW_VULNERABILITY_OVERVIEW_ACTION = 0;
+	/**
+	 * The mouse event should trigger to show vulnerability details view on Events
+	 * tab.
+	 */
+	private final static int VIEW_VULNERABILITY_EVENTS_ACTION = 1;
+	/**
+	 * The mouse event should trigger to take the user to vulnerability on browser.
+	 * 
+	 * @warning Might not work if the default organization its different from
+	 *          current one on eclipse plugin.
+	 */
+	private final static int SHOW_VULNERABILITY_IN_BROWSER_ACTION = 2;
 
 	private TableViewer viewer;
 	private Action saveFilterAction;
@@ -344,59 +366,12 @@ public class VulnerabilitiesView extends ViewPart {
 
 			@Override
 			public void mouseDown(MouseEvent e) {
-				if (getOrgUuid() == null) {
-					return;
-				}
-				Point point = new Point(e.x, e.y);
-				ViewerCell cell = viewer.getCell(point);
-				ISelection sel = viewer.getSelection();
-				if (sel instanceof IStructuredSelection) {
-					Object selected = ((IStructuredSelection) sel).getFirstElement();
-					if (selected instanceof Trace) {
-						final Trace trace = (Trace) selected;
-						boolean unlicensed = trace.getTitle().contains(Constants.UNLICENSED);
-						if (cell != null && cell.getColumnIndex() == 2 && !unlicensed) {
-							BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
-								public void run() {
-									StoryResource story = null;
-									EventSummaryResource eventSummary = null;
-									HttpRequestResource httpRequest = null;
-									try {
-										Key key = new Key(ContrastUIActivator.getOrgUuid(), trace.getUuid());
-										story = getStory(key);
-										eventSummary = getEventSummary(key);
-										httpRequest = getHttpRequest(key);
-									} catch (IOException | UnauthorizedException e1) {
-										ContrastUIActivator.log(e1);
-									}
-									detailsPage.setStory(story);
-									detailsPage.setEventSummaryResource(eventSummary);
-									detailsPage.setHttpRequest(httpRequest);
-									detailsPage.createAdditionalTabs();
-									removeListeners(currentPage);
-									book.showPage(detailsPage);
-									detailsPage.setDefaultSelection();
-									activePage = detailsPage;
-									refreshAction.setEnabled(false);
-									detailsPage.setTrace(trace);
-								}
-
-							});
-						}
-						if (cell != null && cell.getColumnIndex() == 3) {
-							try {
-								openTraceInBrowser(trace);
-							} catch (Exception e1) {
-								ContrastUIActivator.log(e1);
-							}
-						}
-					}
-				}
+				openVulnerabilityByMouseEvent(e.x, e.y, false);
 			}
 
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
-
+				openVulnerabilityByMouseEvent(e.x, e.y, true);
 			}
 		});
 
@@ -409,6 +384,97 @@ public class VulnerabilitiesView extends ViewPart {
 		viewer.setContentProvider(ArrayContentProvider.getInstance());
 		TableLayout layout = new TableLayout();
 		viewer.getTable().setLayout(layout);
+	}
+
+	/**
+	 * Based on the mouse event shows the user the vulnerability in browser or its
+	 * details on the plugin.
+	 * 
+	 * @param xCoord
+	 *            Mouse event X coordinate.
+	 * @param yCoord
+	 *            Mouse event Y coordinate.
+	 * @param isDoubleClick
+	 *            Whether the mouse event is a double click event or not.
+	 */
+	private void openVulnerabilityByMouseEvent(int xCoord, int yCoord, boolean isDoubleClick) {
+		if (getOrgUuid() == null)
+			return;
+
+		ISelection sel = viewer.getSelection();
+
+		if (sel instanceof IStructuredSelection && ((IStructuredSelection) sel).getFirstElement() instanceof Trace) {
+			final Trace trace = (Trace) ((IStructuredSelection) sel).getFirstElement();
+
+			int action = getActionFromClick(isDoubleClick, new Point(xCoord, yCoord));
+
+			if (VIEW_VULNERABILITY_OVERVIEW_ACTION == action && !trace.getTitle().contains(Constants.UNLICENSED))
+				showVulnerabiltyDetails(trace, VulnerabilityDetailsTab.OVERVIEW);
+			else if (VIEW_VULNERABILITY_EVENTS_ACTION == action && !trace.getTitle().contains(Constants.UNLICENSED))
+				showVulnerabiltyDetails(trace, VulnerabilityDetailsTab.EVENTS);
+			else if (SHOW_VULNERABILITY_IN_BROWSER_ACTION == action) {
+				try {
+					openTraceInBrowser(trace);
+				} catch (Exception e1) {
+					ContrastUIActivator.log(e1);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Determines what action should be performed based on the mouse event.
+	 * 
+	 * @param isDoubleClick
+	 *            Whether the mouse event that triggered this was a double click
+	 *            event.
+	 * @param point
+	 *            The position of the click on the TableView.
+	 * @return Action constant that represents what should be done based on the
+	 *         mouse event.
+	 */
+	private int getActionFromClick(boolean isDoubleClick, Point point) {
+		ViewerCell cell = viewer.getCell(point);
+
+		if (cell != null) {
+			int columnIndex = cell.getColumnIndex();
+			if (isDoubleClick && (columnIndex == 0 || columnIndex == 1))
+				return VIEW_VULNERABILITY_EVENTS_ACTION;
+			else if (columnIndex == 2)
+				return VIEW_VULNERABILITY_OVERVIEW_ACTION;
+			else if (columnIndex == 3)
+				return SHOW_VULNERABILITY_IN_BROWSER_ACTION;
+		}
+
+		return NO_ACTION;
+	}
+
+	private void showVulnerabiltyDetails(Trace trace, VulnerabilityDetailsTab tab) {
+		BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
+			public void run() {
+				StoryResource story = null;
+				EventSummaryResource eventSummary = null;
+				HttpRequestResource httpRequest = null;
+				try {
+					Key key = new Key(ContrastUIActivator.getOrgUuid(), trace.getUuid());
+					story = getStory(key);
+					eventSummary = getEventSummary(key);
+					httpRequest = getHttpRequest(key);
+				} catch (IOException | UnauthorizedException e1) {
+					ContrastUIActivator.log(e1);
+				}
+				detailsPage.setStory(story);
+				detailsPage.setEventSummaryResource(eventSummary);
+				detailsPage.setHttpRequest(httpRequest);
+				detailsPage.createAdditionalTabs();
+				removeListeners(currentPage);
+				book.showPage(detailsPage);
+				detailsPage.setDefaultSelection(tab);
+				activePage = detailsPage;
+				refreshAction.setEnabled(false);
+				detailsPage.setTrace(trace);
+			}
+		});
 	}
 
 	private StoryResource getStory(Key key) throws IOException, UnauthorizedException {
