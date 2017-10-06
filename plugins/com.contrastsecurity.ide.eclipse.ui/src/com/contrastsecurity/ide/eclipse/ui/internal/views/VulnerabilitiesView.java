@@ -17,6 +17,8 @@ package com.contrastsecurity.ide.eclipse.ui.internal.views;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -128,6 +130,53 @@ public class VulnerabilitiesView extends ViewPart {
 		}
 	};
 
+	private ISelectionChangedListener serverChangelistener = new ISelectionChangedListener() {
+
+		@Override
+		public void selectionChanged(SelectionChangedEvent event) {
+
+			String orgUuid;
+			try {
+				orgUuid = ContrastCoreActivator.getSelectedOrganizationUuid();
+			} catch (final Exception e) {
+				ContrastUIActivator.log(e);
+				Display.getDefault().syncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						if (viewer != null && !viewer.getTable().isDisposed()) {
+							noOrgUuid(e);
+						} else {
+							refreshJob.cancel();
+						}
+					}
+				});
+				return;
+			}
+			if (orgUuid != null && !orgUuid.isEmpty()) {
+
+				Display.getDefault().syncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						ISelection sel = currentPage.getServerCombo().getSelection();
+						Object element = ((IStructuredSelection) sel).getFirstElement();
+						ServerUIAdapter serverUIAdapter = ((ServerUIAdapter) element);
+						Set<ServerUIAdapter> contrastServers = new LinkedHashSet<>();
+						if (serverUIAdapter.getServer() != null) {
+							contrastServers.add(serverUIAdapter);
+							currentPage.updateApplicationCombo(orgUuid, true, contrastServers);
+						} else {
+							contrastServers = (Set<ServerUIAdapter>) currentPage.getServerCombo().getInput();
+							currentPage.updateApplicationCombo(orgUuid, true, contrastServers);
+						}
+					}
+				});
+			}
+
+		}
+	};
+
 	private String traceSort = Constants.SORT_DESCENDING + Constants.SORT_BY_SEVERITY;
 
 	private IPageLoaderListener pageLoaderListener = new IPageLoaderListener() {
@@ -222,14 +271,14 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void addListeners(VulnerabilityPage page) {
-		page.getServerCombo().addSelectionChangedListener(listener);
+		page.getServerCombo().addSelectionChangedListener(serverChangelistener);
 		page.getApplicationCombo().addSelectionChangedListener(listener);
 
 		page.setPageLoaderListener(pageLoaderListener);
 	}
 
 	private void removeListeners(VulnerabilityPage page) {
-		page.getServerCombo().removeSelectionChangedListener(listener);
+		page.getServerCombo().removeSelectionChangedListener(serverChangelistener);
 		page.getApplicationCombo().removeSelectionChangedListener(listener);
 	}
 
@@ -457,7 +506,7 @@ public class VulnerabilitiesView extends ViewPart {
 
 							// Refresh filters
 							if (isFullRefresh) {
-								currentPage.updateApplicationCombo(orgUuid, true);
+								// currentPage.updateApplicationCombo(orgUuid, true);
 								currentPage.updateServerCombo(orgUuid, true);
 							}
 							// Refresh traces and selections
