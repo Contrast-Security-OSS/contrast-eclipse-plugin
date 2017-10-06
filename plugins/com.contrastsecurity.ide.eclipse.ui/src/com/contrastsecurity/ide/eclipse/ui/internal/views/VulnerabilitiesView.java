@@ -17,8 +17,8 @@ package com.contrastsecurity.ide.eclipse.ui.internal.views;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -50,9 +50,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IActionBars;
@@ -101,22 +99,26 @@ public class VulnerabilitiesView extends ViewPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.views.VulnerabilitiesView";
-	
+
 	/**
 	 * No action should be performed
 	 */
 	private final static int NO_ACTION = -1;
 	/**
-	 * The mouse event should trigger to show vulnerability details view on overview tab.
+	 * The mouse event should trigger to show vulnerability details view on overview
+	 * tab.
 	 */
 	private final static int VIEW_VULNERABILITY_OVERVIEW_ACTION = 0;
 	/**
-	 * The mouse event should trigger to show vulnerability details view on Events tab.
+	 * The mouse event should trigger to show vulnerability details view on Events
+	 * tab.
 	 */
 	private final static int VIEW_VULNERABILITY_EVENTS_ACTION = 1;
 	/**
 	 * The mouse event should trigger to take the user to vulnerability on browser.
-	 * @warning Might not work if the default organization its different from current one on eclipse plugin.
+	 * 
+	 * @warning Might not work if the default organization its different from
+	 *          current one on eclipse plugin.
 	 */
 	private final static int SHOW_VULNERABILITY_IN_BROWSER_ACTION = 2;
 
@@ -137,7 +139,7 @@ public class VulnerabilitiesView extends ViewPart {
 	private AbstractPage loadingPage;
 	private AbstractPage configurationPage;
 	private RefreshJob refreshJob;
-	
+
 	private int currentOffset = 0;
 	private static final int PAGE_LIMIT = 20;
 	private int total = 0;
@@ -149,12 +151,58 @@ public class VulnerabilitiesView extends ViewPart {
 			startRefreshJob();
 		}
 	};
-	
+
+	private ISelectionChangedListener serverChangelistener = new ISelectionChangedListener() {
+
+		@Override
+		public void selectionChanged(SelectionChangedEvent event) {
+
+			String orgUuid;
+			try {
+				orgUuid = ContrastCoreActivator.getSelectedOrganizationUuid();
+			} catch (final Exception e) {
+				ContrastUIActivator.log(e);
+				Display.getDefault().syncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						if (viewer != null && !viewer.getTable().isDisposed()) {
+							noOrgUuid(e);
+						} else {
+							refreshJob.cancel();
+						}
+					}
+				});
+				return;
+			}
+			if (orgUuid != null && !orgUuid.isEmpty()) {
+
+				Display.getDefault().syncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						ISelection sel = currentPage.getServerCombo().getSelection();
+						Object element = ((IStructuredSelection) sel).getFirstElement();
+						ServerUIAdapter serverUIAdapter = ((ServerUIAdapter) element);
+						Set<ServerUIAdapter> contrastServers = new LinkedHashSet<>();
+						if (serverUIAdapter.getServer() != null) {
+							contrastServers.add(serverUIAdapter);
+							currentPage.updateApplicationCombo(orgUuid, true, contrastServers);
+						} else {
+							contrastServers = (Set<ServerUIAdapter>) currentPage.getServerCombo().getInput();
+							currentPage.updateApplicationCombo(orgUuid, true, contrastServers);
+						}
+					}
+				});
+			}
+
+		}
+	};
 
 	private String traceSort = Constants.SORT_DESCENDING + Constants.SORT_BY_SEVERITY;
 
 	private IPageLoaderListener pageLoaderListener = new IPageLoaderListener() {
-		
+
 		@Override
 		public void onPageLoad(int page) {
 			currentOffset = PAGE_LIMIT * (page - 1);
@@ -169,8 +217,7 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	/**
-	 * This is a callback that will allow us to create the viewer and initialize
-	 * it.
+	 * This is a callback that will allow us to create the viewer and initialize it.
 	 */
 	@Override
 	public void createPartControl(Composite parent) {
@@ -222,7 +269,7 @@ public class VulnerabilitiesView extends ViewPart {
 		activePage = loadingPage;
 		refreshAction.setEnabled(false);
 	}
-	
+
 	public void showConfigurationPage() {
 		book.showPage(configurationPage);
 		activePage = configurationPage;
@@ -246,14 +293,14 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private void addListeners(VulnerabilityPage page) {
-		page.getServerCombo().addSelectionChangedListener(listener);
+		page.getServerCombo().addSelectionChangedListener(serverChangelistener);
 		page.getApplicationCombo().addSelectionChangedListener(listener);
-		
+
 		page.setPageLoaderListener(pageLoaderListener);
 	}
 
 	private void removeListeners(VulnerabilityPage page) {
-		page.getServerCombo().removeSelectionChangedListener(listener);
+		page.getServerCombo().removeSelectionChangedListener(serverChangelistener);
 		page.getApplicationCombo().removeSelectionChangedListener(listener);
 	}
 
@@ -265,7 +312,7 @@ public class VulnerabilitiesView extends ViewPart {
 		TableColumn column = new TableColumn(viewer.getTable(), SWT.NONE);
 		column.setWidth(80);
 		column.setText("Severity");
-		
+
 		column.addSelectionListener(new SelectionListener() {
 
 			@Override
@@ -277,16 +324,17 @@ public class VulnerabilitiesView extends ViewPart {
 				}
 				refreshTraces(false);
 			}
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
-			
+
 		});
 
 		column = new TableColumn(viewer.getTable(), SWT.NONE);
 		column.setWidth(600);
 		column.setText("Vulnerability");
-		
+
 		column.addSelectionListener(new SelectionListener() {
 
 			@Override
@@ -298,16 +346,17 @@ public class VulnerabilitiesView extends ViewPart {
 				}
 				refreshTraces(false);
 			}
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
-			
+
 		});
 
 		column = new TableColumn(viewer.getTable(), SWT.NONE);
 		column.setWidth(400);
 		column.setText("Actions");
-				
+
 		viewer.getTable().addMouseListener(new MouseListener() {
 
 			@Override
@@ -336,61 +385,70 @@ public class VulnerabilitiesView extends ViewPart {
 		TableLayout layout = new TableLayout();
 		viewer.getTable().setLayout(layout);
 	}
-	
+
 	/**
-	 * Based on the mouse event shows the user the vulnerability in browser or its details on the plugin.
-	 * @param xCoord Mouse event X coordinate.
-	 * @param yCoord Mouse event Y coordinate.
-	 * @param isDoubleClick Whether the mouse event is a double click event or not.
+	 * Based on the mouse event shows the user the vulnerability in browser or its
+	 * details on the plugin.
+	 * 
+	 * @param xCoord
+	 *            Mouse event X coordinate.
+	 * @param yCoord
+	 *            Mouse event Y coordinate.
+	 * @param isDoubleClick
+	 *            Whether the mouse event is a double click event or not.
 	 */
 	private void openVulnerabilityByMouseEvent(int xCoord, int yCoord, boolean isDoubleClick) {
 		if (getOrgUuid() == null)
 			return;
-		
+
 		ISelection sel = viewer.getSelection();
-		
-		if (sel instanceof IStructuredSelection && ((IStructuredSelection)sel).getFirstElement() instanceof Trace) {
-			final Trace trace = (Trace) ((IStructuredSelection)sel).getFirstElement();
-			
+
+		if (sel instanceof IStructuredSelection && ((IStructuredSelection) sel).getFirstElement() instanceof Trace) {
+			final Trace trace = (Trace) ((IStructuredSelection) sel).getFirstElement();
+
 			int action = getActionFromClick(isDoubleClick, new Point(xCoord, yCoord));
-			
-			if(VIEW_VULNERABILITY_OVERVIEW_ACTION == action && !trace.getTitle().contains(Constants.UNLICENSED))
+
+			if (VIEW_VULNERABILITY_OVERVIEW_ACTION == action && !trace.getTitle().contains(Constants.UNLICENSED))
 				showVulnerabiltyDetails(trace, VulnerabilityDetailsTab.OVERVIEW);
-			else if(VIEW_VULNERABILITY_EVENTS_ACTION == action && !trace.getTitle().contains(Constants.UNLICENSED))
+			else if (VIEW_VULNERABILITY_EVENTS_ACTION == action && !trace.getTitle().contains(Constants.UNLICENSED))
 				showVulnerabiltyDetails(trace, VulnerabilityDetailsTab.EVENTS);
-			else if(SHOW_VULNERABILITY_IN_BROWSER_ACTION == action) {
+			else if (SHOW_VULNERABILITY_IN_BROWSER_ACTION == action) {
 				try {
-					openTraceInBrowser(trace); 
-				}
-				catch (Exception e1) {
-					ContrastUIActivator.log(e1); 
+					openTraceInBrowser(trace);
+				} catch (Exception e1) {
+					ContrastUIActivator.log(e1);
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Determines what action should be performed based on the mouse event.
-	 * @param isDoubleClick Whether the mouse event that triggered this was a double click event.
-	 * @param point The position of the click on the TableView.
-	 * @return Action constant that represents what should be done based on the mouse event.
+	 * 
+	 * @param isDoubleClick
+	 *            Whether the mouse event that triggered this was a double click
+	 *            event.
+	 * @param point
+	 *            The position of the click on the TableView.
+	 * @return Action constant that represents what should be done based on the
+	 *         mouse event.
 	 */
 	private int getActionFromClick(boolean isDoubleClick, Point point) {
 		ViewerCell cell = viewer.getCell(point);
-		
-		if(cell != null) {
+
+		if (cell != null) {
 			int columnIndex = cell.getColumnIndex();
-			if(isDoubleClick && (columnIndex == 0 || columnIndex == 1))
+			if (isDoubleClick && (columnIndex == 0 || columnIndex == 1))
 				return VIEW_VULNERABILITY_EVENTS_ACTION;
-			else if(columnIndex == 2)
+			else if (columnIndex == 2)
 				return VIEW_VULNERABILITY_OVERVIEW_ACTION;
-			else if(columnIndex == 3)
+			else if (columnIndex == 3)
 				return SHOW_VULNERABILITY_IN_BROWSER_ACTION;
 		}
-		
+
 		return NO_ACTION;
 	}
-	
+
 	private void showVulnerabiltyDetails(Trace trace, VulnerabilityDetailsTab tab) {
 		BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
 			public void run() {
@@ -416,7 +474,6 @@ public class VulnerabilitiesView extends ViewPart {
 				refreshAction.setEnabled(false);
 				detailsPage.setTrace(trace);
 			}
-
 		});
 	}
 
@@ -430,7 +487,7 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private EventSummaryResource getEventSummary(Key key) throws IOException, UnauthorizedException {
-		EventSummaryResource  eventSummary = contrastCache.getEventSummaryResources().get(key);
+		EventSummaryResource eventSummary = contrastCache.getEventSummaryResources().get(key);
 		if (eventSummary == null) {
 			eventSummary = sdk.getEventSummary(key.getOrgUuid(), key.getTraceId());
 			contrastCache.getEventSummaryResources().put(key, eventSummary);
@@ -446,6 +503,7 @@ public class VulnerabilitiesView extends ViewPart {
 		}
 		return httpRequest;
 	}
+
 	public void refreshTraces(final boolean isFullRefresh) {
 		if (activePage != mainPage && activePage != noVulnerabilitiesPage && activePage != configurationPage) {
 			return;
@@ -497,31 +555,34 @@ public class VulnerabilitiesView extends ViewPart {
 						selectedApp[0] = currentPage.getApplicationCombo().getSelection();
 					}
 				});
-				
-				if(isFullRefresh)
+
+				if (isFullRefresh)
 					currentOffset = 0;
 
-				final Traces traces = getTraces(orgUuid, selectedServerId[0], selectedAppId[0], currentOffset, PAGE_LIMIT);
-				if(traces != null)
+				final Traces traces = getTraces(orgUuid, selectedServerId[0], selectedAppId[0], currentOffset,
+						PAGE_LIMIT);
+				if (traces != null)
 					total = traces.getCount();
-				
+
 				Display.getDefault().syncExec(new Runnable() {
 
 					@Override
 					public void run() {
 						if (viewer != null && !viewer.getTable().isDisposed()) {
-							//Refresh filters
-							if(isFullRefresh) {
-								currentPage.updateApplicationCombo(orgUuid, true);
+
+							// Refresh filters
+							if (isFullRefresh) {
+								// currentPage.updateApplicationCombo(orgUuid, true);
 								currentPage.updateServerCombo(orgUuid, true);
 							}
-							//Refresh traces and selections
+							// Refresh traces and selections
 							refreshUI(traces, selectedServer[0], selectedApp[0], isFullRefresh);
 						} else {
 							refreshJob.cancel();
 						}
 					}
 				});
+
 			} catch (final Exception e) {
 				ContrastUIActivator.log(e);
 				Display.getDefault().syncExec(new Runnable() {
@@ -559,7 +620,7 @@ public class VulnerabilitiesView extends ViewPart {
 						refreshAction.setEnabled(true);
 					}
 				}
-				
+
 			});
 			if (currentPage == noVulnerabilitiesPage || currentPage == mainPage) {
 				addListeners(currentPage);
@@ -569,13 +630,20 @@ public class VulnerabilitiesView extends ViewPart {
 
 	/**
 	 * Makes refresh of traces list, services and applications lists.
-	 * @param traces New traces list.
-	 * @param selectedServer Combo selection for server list.
-	 * @param selectedApp Combo selection for application list.
-	 * @param isFullRefresh Indicates if this is just a page change or a UI refresh triggered by filters
-	 * or Refresh button which might change which views are initialized again.
+	 * 
+	 * @param traces
+	 *            New traces list.
+	 * @param selectedServer
+	 *            Combo selection for server list.
+	 * @param selectedApp
+	 *            Combo selection for application list.
+	 * @param isFullRefresh
+	 *            Indicates if this is just a page change or a UI refresh triggered
+	 *            by filters or Refresh button which might change which views are
+	 *            initialized again.
 	 */
-	private void refreshUI(Traces traces, ISelection selectedServer, ISelection selectedApp, final boolean isFullRefresh) {
+	private void refreshUI(Traces traces, ISelection selectedServer, ISelection selectedApp,
+			final boolean isFullRefresh) {
 		if (traces != null && traces.getTraces() != null) {
 			Trace[] traceArray = traces.getTraces().toArray(new Trace[0]);
 			viewer.setInput(traceArray);
@@ -586,10 +654,9 @@ public class VulnerabilitiesView extends ViewPart {
 				activePage = mainPage;
 				currentPage = mainPage;
 			}
-			
 			currentPage.getServerCombo().setSelection(selectedServer);
 			currentPage.getApplicationCombo().setSelection(selectedApp);
-			
+
 			addListeners(mainPage);
 			refreshAction.setEnabled(true);
 			currentPage.getLabel().setText(traces.getTraces().size() + " Vulnerabilities");
@@ -599,18 +666,18 @@ public class VulnerabilitiesView extends ViewPart {
 				activePage = noVulnerabilitiesPage;
 				currentPage = noVulnerabilitiesPage;
 			}
-			
+
 			currentPage.getServerCombo().setSelection(selectedServer);
 			currentPage.getApplicationCombo().setSelection(selectedApp);
-			
+
 			refreshAction.setEnabled(true);
 			addListeners(noVulnerabilitiesPage);
 		}
-		
-		//Refresh page combo
-		if(isFullRefresh)
+
+		// Refresh page combo
+		if (isFullRefresh)
 			currentPage.initializePageCombo(PAGE_LIMIT, total);
-		
+
 		viewer.getControl().getParent().layout(true, true);
 		viewer.getControl().getParent().redraw();
 	}
@@ -633,7 +700,8 @@ public class VulnerabilitiesView extends ViewPart {
 		contrastCache.clear();
 	}
 
-	private Traces getTraces(String orgUuid, Long serverId, String appId, int offset, int limit) throws IOException, UnauthorizedException {
+	private Traces getTraces(String orgUuid, Long serverId, String appId, int offset, int limit)
+			throws IOException, UnauthorizedException {
 		if (orgUuid == null) {
 			return null;
 		}
