@@ -9,7 +9,7 @@
             id="com.contrastsecurity.ide.eclipse.ui">
       </category>
       <view
-            name="Vulnerabilities"
+            name="Contrast"
             icon="icons/contrastIcon.png"
             category="com.contrastsecurity.ide.eclipse.ui"
             class="com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView"

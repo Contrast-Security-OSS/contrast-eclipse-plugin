@@ -8,7 +8,7 @@
 - call
 
 - cd targets; mvn clean install
-- cd ..; mvn clean install 
+- cd ..; mvn clean install -Djarsigner.skip=true 
 - mvn clean verify
 
 - start Eclipse (current target version is Mars, but I have tested with Neon)
@@ -41,6 +41,20 @@ Requirements: Eclipse SDK Mars 4.5 or higher, recommended m2e and EGit
 
 - import all "Existing Projects"
 - create an Eclipse PDE Run/Debug configuration with included com.contrastsecurity.ide* plugins
+
+### Signing
+
+Plugin build makes use of [Apache Maven Jarsigner Plugin](http://maven.apache.org/plugins/maven-jarsigner-plugin/) to sign automatically during package phase.
+Sign required parameters are passed as maven build parameters as follow:
+
+* keystore.path : Path location of the keystore file (.jks).
+* keystore.storepass : Keystore password.
+* keystore.alias : Key alias.
+* keystore.keypass : Key password.
+
+To disable this behavior add this line at the end of your maven build command:
+
+    mvn ... -Djarsigner.skip=true
 
 ### License
 GPL version 3 

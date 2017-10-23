@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: IDE plugin connecting to REST API - UI
+Bundle-Name: Contrast IDE plugin to review IAST findings - UI
 Bundle-SymbolicName: com.contrastsecurity.ide.eclipse.ui;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator

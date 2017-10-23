@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: IDE plugin connecting to REST API - Core
+Bundle-Name: Contrast IDE plugin to review IAST Findings
 Bundle-SymbolicName: com.contrastsecurity.ide.eclipse.core;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Contrast Security

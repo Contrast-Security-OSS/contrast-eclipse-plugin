@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.contrastsecurity.ide.eclipse.feature"
-      label="IDE plugin connecting to REST API"
+      label="Contrast IDE plugin to review IAST findings"
       version="1.0.0.qualifier"
       provider-name="Contrast Security"
       plugin="com.contrastsecurity.ide.eclipse.core">
