@@ -1,5 +1,6 @@
 language: java
 sudo: false # faster builds
+install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Djarsigner.skip=true -B -V
 script:
   - mvn clean integration-test -Djarsigner.skip=true
   - mvn clean compile package -Djarsigner.skip=true
