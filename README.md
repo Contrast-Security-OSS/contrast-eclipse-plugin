@@ -52,6 +52,10 @@ Sign required parameters are passed as maven build parameters as follow:
 * keystore.alias : Key alias.
 * keystore.keypass : Key password.
 
+Example maven command:
+
+    mvn clean install -Dkeystore.path=/path/to/keystore -Dkeystore.storepass=keystorePass -Dkeystore.alias=alias -Dkeystore.keypass=keyPass
+
 To disable this behavior add this line at the end of your maven build command:
 
     mvn ... -Djarsigner.skip=true
