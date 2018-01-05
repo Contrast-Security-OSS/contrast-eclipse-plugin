@@ -17,6 +17,9 @@ package com.contrastsecurity.ide.eclipse.core.extended;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.http.HttpMethod;
+import com.contrastsecurity.ide.eclipse.core.UrlConstants;
 import com.contrastsecurity.sdk.ContrastSDK;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -35,8 +39,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class ExtendedContrastSDK extends ContrastSDK {
+	
+	private final static int BAD_REQUEST = 400;
+	private final static int SERVER_ERROR = 500;
 
 	private Gson gson;
+	private String restApiURL;
 
 	public ExtendedContrastSDK() {
 	}
@@ -45,6 +53,7 @@ public class ExtendedContrastSDK extends ContrastSDK {
 			throws IllegalArgumentException {
 		super(user, serviceKey, apiKey, restApiURL);
 		this.gson = new Gson();
+		this.restApiURL = restApiURL;
 	}
 
 	public ExtendedContrastSDK(String user, String serviceKey, String apiKey) {
@@ -187,5 +196,83 @@ public class ExtendedContrastSDK extends ContrastSDK {
 
 	private String getTraceUrl(String orgUuid, String traceId) {
 		return String.format("/ng/%s/traces/%s/story?expand=skip_links", orgUuid, traceId);
+	}
+	
+	/**
+	 * Gets a trace information using its UUID as reference.
+	 * @param orgUuid Organization UUID.
+	 * @param traceId Vulnerability UUID.
+	 * @return A response that contains the requested trace information.
+	 * @throws IOException
+	 * @throws UnauthorizedException
+	 */
+	public TraceResponse getTraceByUuid(String orgUuid, String traceId) throws IOException, UnauthorizedException {
+		InputStream is = null;
+		InputStreamReader reader = null;
+		try {
+			String url = String.format(UrlConstants.GET_TRACE, orgUuid, traceId);
+			System.out.println(url);
+			is = makeRequest(HttpMethod.GET, url);
+			reader = new InputStreamReader(is);
+			return gson.fromJson(reader, TraceResponse.class);
+		}
+		finally {
+			 IOUtils.closeQuietly(is);
+			 IOUtils.closeQuietly(reader);
+		}
+	}
+	
+	/**
+	 * Changes the status for a list of vulnerabilities.
+	 * @param orgUuid The UUID for the organization.
+	 * @param request Object that contains the request body with the indicated vulnerabilities and their status data.
+	 * @return A BaseResponse object that indicated whether the status change was successful.
+	 * @throws IOException
+	 * @throws UnauthorizedException
+	 */
+	public BaseResponse markStatus(String orgUuid, TraceStatusRequest request) throws IOException, UnauthorizedException {
+		InputStream is = null;
+		InputStreamReader reader = null;
+		try {
+			String markUrl = String.format(UrlConstants.MARK_STATUS, orgUuid);
+			is = makeRequest(HttpMethod.PUT, markUrl, request);
+			reader = new InputStreamReader(is);
+			return gson.fromJson(reader, BaseResponse.class);
+		}
+		finally {
+			 IOUtils.closeQuietly(is);
+			 IOUtils.closeQuietly(reader);
+		}
+	}
+	
+	// ------------------------ Utilities -----------------------------------------------
+	private InputStream makeRequest(HttpMethod method, String path, Object body) throws IOException, UnauthorizedException {
+		String url = restApiURL + path;
+        HttpURLConnection connection = makeConnection(url, method.toString(), body);
+
+        InputStream is = connection.getInputStream();
+        int rc = connection.getResponseCode();
+        if (rc >= BAD_REQUEST && rc < SERVER_ERROR) {
+            IOUtils.closeQuietly(is);
+            throw new UnauthorizedException(rc);
+        }
+        return is;
+    }
+
+	private HttpURLConnection makeConnection(String url, String method, Object body) throws IOException {
+		
+		HttpURLConnection connection = makeConnection(url, method);
+		
+		connection.setDoOutput(true);
+		connection.setRequestProperty("Content-Type", "application/json");
+		OutputStream os = connection.getOutputStream();
+		OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+		
+		osw.write(gson.toJson(body));
+		osw.flush();
+		osw.close();
+		os.close();
+		
+		return connection;
 	}
 }
