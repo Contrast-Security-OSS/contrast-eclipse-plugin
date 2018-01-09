@@ -2,7 +2,7 @@ package com.contrastsecurity.ide.eclipse.ui.util;
 
 public class SystemUtils {
 	
-	private final static String OS_SYSTEM = System.getProperty("os.name");
+	private final static String OS_SYSTEM = System.getProperty("os.name").toLowerCase();
 	
 	private final static String WINDOWS_OS = "win";
 	private final static String MAC_OS = "mac";

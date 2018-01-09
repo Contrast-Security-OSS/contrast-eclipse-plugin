@@ -117,8 +117,8 @@ public class MarkStatusDialog extends Dialog {
 			getButton(IDialogConstants.CANCEL_ID).setText("No thanks");
 			okButton.setText("Add comments");
 			if(SystemUtils.isMacOS()) {
-				okButton.setSize(120, 27);
-				okButton.setLocation(120, 18);
+				okButton.setSize(120, 29);
+				okButton.setLocation(120, 16);
 			}
 			noteText.addSegmentListener(e -> {
 				if(StringUtils.isBlank(noteText.getText()))
