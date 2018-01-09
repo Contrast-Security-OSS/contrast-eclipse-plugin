@@ -39,6 +39,7 @@ import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.extended.TraceStatusRequest;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.StatusConstants;
+import com.contrastsecurity.ide.eclipse.ui.util.SystemUtils;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 
 public class MarkStatusDialog extends Dialog {
@@ -115,6 +116,10 @@ public class MarkStatusDialog extends Dialog {
 		else {
 			getButton(IDialogConstants.CANCEL_ID).setText("No thanks");
 			okButton.setText("Add comments");
+			if(SystemUtils.isMacOS()) {
+				okButton.setSize(120, 27);
+				okButton.setLocation(120, 18);
+			}
 			noteText.addSegmentListener(e -> {
 				if(StringUtils.isBlank(noteText.getText()))
 					okButton.setEnabled(false);
