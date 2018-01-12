@@ -20,12 +20,10 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -39,12 +37,19 @@ import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.extended.TraceStatusRequest;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.StatusConstants;
-import com.contrastsecurity.ide.eclipse.ui.util.SystemUtils;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 
 public class MarkStatusDialog extends Dialog {
 	
-	private final static String TITLE_TEXT = "Mark as %s";
+	private final static String TITLE_TEXT = "Mark as";
+	private final static String[] STATUS_LIST = {
+			StatusConstants.CONFIRMED,
+			StatusConstants.SUSPICICIOUS,
+			StatusConstants.NOT_A_PROBLEM,
+			StatusConstants.REMEDIATED,
+			StatusConstants.REPORTED,
+			StatusConstants.FIXED
+	};
 	private final static String[] REASON_LIST = { 
 			"Url is only accessible by trusted powers", 
 			"False positive",
@@ -56,18 +61,16 @@ public class MarkStatusDialog extends Dialog {
 	private ExtendedContrastSDK extendedContrastSDK;
 	private String traceId;
 	private String status;
-	private boolean commentsEnabled;
+	private IStatusListener listener;
 	
+	private Combo statusCombo;
 	private Combo reasonCombo;
 	private Text noteText;
-	private Button okButton;
 	
-	public MarkStatusDialog(Shell shell, ExtendedContrastSDK extendedContrastSDK, String traceId, String status, boolean commentsEnabled) {
+	public MarkStatusDialog(Shell shell, ExtendedContrastSDK extendedContrastSDK, String traceId) {
 		super(shell);
 		this.extendedContrastSDK = extendedContrastSDK;
 		this.traceId = traceId;
-		this.status = status;
-		this.commentsEnabled = commentsEnabled;
 	}
 	
 	@Override
@@ -77,16 +80,31 @@ public class MarkStatusDialog extends Dialog {
 
 		contentComposite.setLayout(new GridLayout(2, false));
 		
-		if(StatusConstants.NOT_A_PROBLEM.equals(status)) {
-			UIElementUtils.createLabel(contentComposite, "Reason");
-			reasonCombo = UIElementUtils.createCombo(contentComposite, REASON_LIST);
-			UIElementUtils.createLabel(contentComposite, "Note");
-			noteText = UIElementUtils.createText(contentComposite, 10);
-		}
-		else {
-			UIElementUtils.createLabel(contentComposite, "Comments");
-			noteText = UIElementUtils.createText(contentComposite, 10, 200);
-		}
+		UIElementUtils.createLabel(contentComposite, "Mark as");
+		statusCombo = UIElementUtils.createCombo(contentComposite, STATUS_LIST);
+		UIElementUtils.createLabel(contentComposite, "Reason");
+		reasonCombo = UIElementUtils.createCombo(contentComposite, REASON_LIST);
+		UIElementUtils.createLabel(contentComposite, "Comment");
+		noteText = UIElementUtils.createText(contentComposite, 10);
+		
+		statusCombo.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				System.out.println(statusCombo.getText());
+				status = statusCombo.getText();
+				
+				if(StatusConstants.NOT_A_PROBLEM.equals(status)) {
+					reasonCombo.setEnabled(true);
+					status = Constants.VULNERABILITY_STATUS_NOT_A_PROBLEM_API_REQUEST_STRING;
+				}
+				else
+					reasonCombo.setEnabled(false);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {}
+		});
 		
 		return container;
 	}
@@ -95,51 +113,24 @@ public class MarkStatusDialog extends Dialog {
 	public void create() {
 		super.create();
 		
-		getShell().setText(String.format(TITLE_TEXT, status));
-		okButton = getButton(IDialogConstants.OK_ID);
-		okButton.setEnabled(false);
-		
-		if(StatusConstants.NOT_A_PROBLEM.equals(status)) {
-			status = Constants.VULNERABILITY_STATUS_NOT_A_PROBLEM_API_REQUEST_STRING;
-			okButton.setText("Mark status");
-			reasonCombo.addSelectionListener(new SelectionListener() {
-				
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					okButton.setEnabled(true);
-				}
-				
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e) {}
-			});
-		}
-		else {
-			getButton(IDialogConstants.CANCEL_ID).setText("No thanks");
-			okButton.setText("Add comments");
-			if(SystemUtils.isMacOS()) {
-				okButton.setSize(120, 29);
-				okButton.setLocation(120, 16);
-			}
-			noteText.addSegmentListener(e -> {
-				if(StringUtils.isBlank(noteText.getText()))
-					okButton.setEnabled(false);
-				else
-					okButton.setEnabled(true);
-			});
-		}
+		getShell().setText(TITLE_TEXT);
+		reasonCombo.setEnabled(false);
+		statusCombo.select(0);
+		reasonCombo.select(0);
 	}
 	
 	@Override
 	protected void cancelPressed() {
-		if(commentsEnabled)
-			markStatus(false);
-		else
-			super.cancelPressed();
+		super.cancelPressed();
 	}
 	
 	@Override
 	protected void okPressed() {
 		markStatus(true);
+	}
+	
+	public void setStatusListener(IStatusListener listener) {
+		this.listener = listener;
 	}
 	
 	private void markStatus(boolean addComments) {
@@ -149,16 +140,20 @@ public class MarkStatusDialog extends Dialog {
 		TraceStatusRequest request = new TraceStatusRequest();
 		request.setTraces(traces);
 		request.setStatus(status);
-		request.setCommentPrefrence(commentsEnabled);
-		if(addComments)
+		if(StringUtils.isNotBlank(noteText.getText()))
 			request.setNote(noteText.getText());
-		if(reasonCombo != null)
+		if(Constants.VULNERABILITY_STATUS_NOT_A_PROBLEM_API_REQUEST_STRING.equals(status))
 			request.setSubstatus(reasonCombo.getText());
+		
+		System.out.println(request.toString());
 		
 		try {
 			BaseResponse response = extendedContrastSDK.markStatus(ContrastUIActivator.getOrgUuid(), request);
-			if(response.isSuccess())
+			if(response.isSuccess()) {
+				if(listener != null)
+					listener.onStatusChange(statusCombo.getText());
 				super.okPressed();
+			}
 		}
 		catch (UnauthorizedException e1) {
 			ContrastUIActivator.log(e1);

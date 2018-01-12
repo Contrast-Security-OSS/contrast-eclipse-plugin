@@ -53,4 +53,10 @@ public class TraceStatusRequest {
 		this.commentPrefrence = commentPrefrence;
 	}
 
+	@Override
+	public String toString() {
+		return "TraceStatusRequest [traces=" + traces + ", status=" + status + ", substatus=" + substatus + ", note="
+				+ note + ", commentPrefrence=" + commentPrefrence + "]";
+	}
+
 }
