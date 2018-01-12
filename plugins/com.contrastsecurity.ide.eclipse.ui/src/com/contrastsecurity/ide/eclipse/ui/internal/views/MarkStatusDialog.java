@@ -149,7 +149,7 @@ public class MarkStatusDialog extends Dialog {
 		
 		try {
 			BaseResponse response = extendedContrastSDK.markStatus(ContrastUIActivator.getOrgUuid(), request);
-			if(response.isSuccess()) {
+			if(response.getSuccess()) {
 				if(listener != null)
 					listener.onStatusChange(statusCombo.getText());
 				super.okPressed();

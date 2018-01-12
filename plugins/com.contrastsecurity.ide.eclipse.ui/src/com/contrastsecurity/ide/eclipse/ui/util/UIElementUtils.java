@@ -16,6 +16,7 @@ package com.contrastsecurity.ide.eclipse.ui.util;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -77,14 +78,28 @@ public class UIElementUtils {
 	}
 	
 	public static Button createButton(Composite parent, String text, Integer widthHint) {
+		Button button = createBasicButton(parent, widthHint);
+		button.setText(text);
+		return button;
+	}
+	
+	public static Button createButton(Composite parent, Image image) {
+		return createButton(parent, image, null);
+	}
+	
+	public static Button createButton(Composite parent, Image image, Integer widthHint) {
+		Button button = createBasicButton(parent, widthHint);
+		button.setImage(image);
+		return button;
+	}
+	
+	public static Button createBasicButton(Composite parent, Integer widthHint) {
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
 		if(widthHint != null)
 			gd.widthHint = widthHint;
 		
 		Button button = new Button(parent, SWT.PUSH);
 		button.setLayoutData(gd);
-		button.setText(text);
 		
 		return button;
 	}
