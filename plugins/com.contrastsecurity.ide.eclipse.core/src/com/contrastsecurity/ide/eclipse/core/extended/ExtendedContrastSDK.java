@@ -26,38 +26,26 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
+import com.google.gson.*;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.http.HttpMethod;
 import com.contrastsecurity.ide.eclipse.core.UrlConstants;
 import com.contrastsecurity.sdk.ContrastSDK;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+
+import org.apache.commons.io.IOUtils;
 
 public class ExtendedContrastSDK extends ContrastSDK {
-	
-	private final static int BAD_REQUEST = 400;
-	private final static int SERVER_ERROR = 500;
 
+    private static final int BAD_REQUEST = 400;
+    private static final int SERVER_ERROR = 500;
 	private Gson gson;
 	private String restApiURL;
-
-	public ExtendedContrastSDK() {
-	}
 
 	public ExtendedContrastSDK(String user, String serviceKey, String apiKey, String restApiURL)
 			throws IllegalArgumentException {
 		super(user, serviceKey, apiKey, restApiURL);
-		this.gson = new Gson();
 		this.restApiURL = restApiURL;
-	}
-
-	public ExtendedContrastSDK(String user, String serviceKey, String apiKey) {
-		super(user, serviceKey, apiKey);
 		this.gson = new Gson();
 	}
 
@@ -245,9 +233,66 @@ public class ExtendedContrastSDK extends ContrastSDK {
 		}
 	}
 	
-	// ------------------------ Utilities -----------------------------------------------
-	private InputStream makeRequest(HttpMethod method, String path, Object body) throws IOException, UnauthorizedException {
-		String url = restApiURL + path;
+	public TagsResource getTagsByOrg(String orgUuid) throws IOException, UnauthorizedException {
+        InputStream is = null;
+        InputStreamReader reader = null;
+        try {
+            String tagsUrl = String.format(UrlConstants.ORG_TAGS, orgUuid);
+            is = makeRequest(HttpMethod.GET, tagsUrl);
+            reader = new InputStreamReader(is);
+            return gson.fromJson(reader, TagsResource.class);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(reader);
+        }
+    }
+
+    public TagsResource getTagsByTrace(String orgUuid, String traceId) throws IOException, UnauthorizedException {
+        InputStream is = null;
+        InputStreamReader reader = null;
+        try {
+            String tagsUrl = String.format(UrlConstants.TRACE_TAGS, orgUuid, traceId);
+            is = makeRequest(HttpMethod.GET, tagsUrl);
+            reader = new InputStreamReader(is);
+            return gson.fromJson(reader, TagsResource.class);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(reader);
+        }
+    }
+
+    public BaseResponse putTags(String orgUuid, TagsServersResource tagsServersResource) throws IOException, UnauthorizedException {
+        InputStream is = null;
+        InputStreamReader reader = null;
+        try {
+            String tagsUrl = String.format(UrlConstants.ORG_TAGS, orgUuid);
+            is = makeRequest(HttpMethod.PUT, tagsUrl, tagsServersResource);
+            reader = new InputStreamReader(is);
+            return gson.fromJson(reader, BaseResponse.class);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(reader);
+        }
+    }
+
+    public TagsResource deleteTag(String orgUuid, String traceId, String tag) throws IOException, UnauthorizedException {
+        InputStream is = null;
+        InputStreamReader reader = null;
+        TagRequest tagRequest = new TagRequest(tag);
+        try {
+            String tagsUrl = String.format(UrlConstants.TRACE_TAGS_DELETE, orgUuid, traceId);
+            is = makeRequest(HttpMethod.DELETE, tagsUrl, tagRequest);
+            reader = new InputStreamReader(is);
+            return gson.fromJson(reader, TagsResource.class);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(reader);
+        }
+    }
+    
+ // ------------------------ Utilities -----------------------------------------------
+    private InputStream makeRequest(HttpMethod method, String path, Object body) throws IOException, UnauthorizedException {
+        String url = restApiURL + path;
         HttpURLConnection connection = makeConnection(url, method.toString(), body);
 
         InputStream is = connection.getInputStream();
@@ -259,20 +304,21 @@ public class ExtendedContrastSDK extends ContrastSDK {
         return is;
     }
 
-	private HttpURLConnection makeConnection(String url, String method, Object body) throws IOException {
-		
-		HttpURLConnection connection = makeConnection(url, method);
-		
-		connection.setDoOutput(true);
-		connection.setRequestProperty("Content-Type", "application/json");
-		OutputStream os = connection.getOutputStream();
-		OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-		
-		osw.write(gson.toJson(body));
-		osw.flush();
-		osw.close();
-		os.close();
-		
-		return connection;
-	}
+    private HttpURLConnection makeConnection(String url, String method, Object body) throws IOException {
+
+        HttpURLConnection connection = makeConnection(url, method);
+
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        OutputStream os = connection.getOutputStream();
+        OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+
+        osw.write(gson.toJson(body));
+        osw.flush();
+        osw.close();
+        os.close();
+
+        return connection;
+    }
+	
 }

@@ -32,17 +32,14 @@ import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DateTime;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
 import com.contrastsecurity.http.RuleSeverity;
@@ -50,7 +47,6 @@ import com.contrastsecurity.http.TraceFilterForm;
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
-import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ContrastLabelProvider;
@@ -59,7 +55,6 @@ import com.contrastsecurity.models.Application;
 import com.contrastsecurity.models.Applications;
 import com.contrastsecurity.models.Server;
 import com.contrastsecurity.models.Servers;
-import com.contrastsecurity.sdk.ContrastSDK;
 
 public class FilterDialog extends Dialog {
 
@@ -73,29 +68,26 @@ public class FilterDialog extends Dialog {
 	private DateTime dateTimeFrom;
 	private DateTime dateTimeTo;
 
-	private Label label;
+	private Servers servers;
+	private Applications applications;
 
-	ExtendedContrastSDK extendedContrastSDK;
-	Servers servers;
-	Applications applications;
+	private Button severityLevelNoteButton;
+	private Button severityLevelMediumButton;
+	private Button severityLevelCriticalButton;
+	private Button severityLevelLowButton;
+	private Button severityLevelHighButton;
 
-	Button severityLevelNoteButton;
-	Button severityLevelMediumButton;
-	Button severityLevelCriticalButton;
-	Button severityLevelLowButton;
-	Button severityLevelHighButton;
+	private Button statusAutoRemediatedButton;
+	private Button statusNotAProblemButton;
+	private Button statusFixedButton;
+	private Button statusConfirmedButton;
+	private Button statusRemediatedButton;
+	private Button statusBeingTrackedButton;
+	private Button statusSuspiciousButton;
+	private Button statusReportedButton;
+	private Button statusUntrackedButton;
 
-	Button statusAutoRemediatedButton;
-	Button statusNotAProblemButton;
-	Button statusFixedButton;
-	Button statusConfirmedButton;
-	Button statusRemediatedButton;
-	Button statusBeingTrackedButton;
-	Button statusSuspiciousButton;
-	Button statusReportedButton;
-	Button statusUntrackedButton;
-
-	IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
+	private IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
 
 	private ISelectionChangedListener serverComboBoxListener = new ISelectionChangedListener() {
 
@@ -170,10 +162,9 @@ public class FilterDialog extends Dialog {
 		dateTime.setSeconds(calendar.get(Calendar.SECOND));
 	}
 
-	public FilterDialog(Shell parentShell, ContrastSDK contrastSDK, Servers servers, Applications applications) {
+	public FilterDialog(Shell parentShell, Servers servers, Applications applications) {
 		super(parentShell);
 
-		extendedContrastSDK = (ExtendedContrastSDK) contrastSDK;
 		this.servers = servers;
 		this.applications = applications;
 	}
@@ -188,30 +179,14 @@ public class FilterDialog extends Dialog {
 		return orgUuid;
 	}
 
-	private void createApplicationCombo(Composite composite) {
-		applicationCombo = createContrastComboViewer(composite);
-	}
-
-	private void createServerCombo(Composite composite) {
-		serverCombo = createContrastComboViewer(composite);
-	}
-
 	private void createLastDetectedCombo(Composite composite) {
-		lastDetectedCombo = createComboViewer(composite);
+		lastDetectedCombo = Util.createComboViewer(composite);
 
 		Set<String> lastDetectedValues = new LinkedHashSet<>();
 		lastDetectedValues.addAll(Arrays.asList(Constants.LAST_DETECTED_CONSTANTS));
 
 		lastDetectedCombo.setInput(lastDetectedValues);
 		lastDetectedCombo.setSelection(new StructuredSelection(Constants.LAST_DETECTED_ALL));
-	}
-
-	private ComboViewer createComboViewer(Composite composite) {
-		ComboViewer comboViewer = new ComboViewer(composite, SWT.READ_ONLY);
-		comboViewer.getControl().setFont(composite.getFont());
-		comboViewer.setLabelProvider(new LabelProvider());
-		comboViewer.setContentProvider(new ArrayContentProvider());
-		return comboViewer;
 	}
 
 	private ComboViewer createContrastComboViewer(Composite composite) {
@@ -223,7 +198,7 @@ public class FilterDialog extends Dialog {
 		return comboViewer;
 	}
 
-	public void updateServerCombo(final String orgUuid, final boolean setSavedDefaults, Servers servers) {
+	private void updateServerCombo(final String orgUuid, final boolean setSavedDefaults, Servers servers) {
 		Set<ServerUIAdapter> contrastServers = new LinkedHashSet<>();
 		int count = 0;
 		if (orgUuid != null) {
@@ -253,7 +228,7 @@ public class FilterDialog extends Dialog {
 		}
 	}
 
-	public void updateApplicationCombo(final String orgUuid, final boolean setSavedDefaults,
+	private void updateApplicationCombo(final String orgUuid, final boolean setSavedDefaults,
 			Applications applications) {
 		Set<ApplicationUIAdapter> contrastApplications = new LinkedHashSet<>();
 		int count = 0;
@@ -312,17 +287,17 @@ public class FilterDialog extends Dialog {
 		Composite comboComposite = new Composite(container, SWT.NONE);
 		comboComposite.setLayout(new GridLayout(2, false));
 
-		label = createLabel(comboComposite, "Server");
+		Util.createLabel(comboComposite, "Server");
 		String orgUuid = getOrgUuid();
 
-		createServerCombo(comboComposite);
+		serverCombo = createContrastComboViewer(comboComposite);
 		updateServerCombo(orgUuid, true, servers);
 
 		serverCombo.addSelectionChangedListener(serverComboBoxListener);
 
-		label = createLabel(comboComposite, "Application");
+		Util.createLabel(comboComposite, "Application");
 
-		createApplicationCombo(comboComposite);
+		applicationCombo = createContrastComboViewer(comboComposite);
 		updateApplicationCombo(orgUuid, true, applications);
 
 		createSeverityLevelSection(container);
@@ -341,7 +316,7 @@ public class FilterDialog extends Dialog {
 		Composite severityCompositeContainer = new Composite(container, SWT.NONE);
 		severityCompositeContainer.setLayout(new GridLayout(2, false));
 
-		label = createLabel(severityCompositeContainer, "Severity");
+		Util.createLabel(severityCompositeContainer, "Severity");
 
 		Composite severityComposite = new Composite(severityCompositeContainer, SWT.NONE);
 		severityComposite.setLayout(new GridLayout(3, false));
@@ -368,7 +343,7 @@ public class FilterDialog extends Dialog {
 		Composite statusCompositeContainer = new Composite(container, SWT.NONE);
 		statusCompositeContainer.setLayout(new GridLayout(2, false));
 
-		label = createLabel(statusCompositeContainer, "Status");
+		Util.createLabel(statusCompositeContainer, "Status");
 
 		Composite statusComposite = new Composite(statusCompositeContainer, SWT.NONE);
 		statusComposite.setLayout(new GridLayout(3, false));
@@ -392,32 +367,22 @@ public class FilterDialog extends Dialog {
 		statusUntrackedButton = createCheckBoxButton(statusComposite, "Untracked");
 	}
 
-	private Label createLabel(Composite composite, String text) {
-		GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
-
-		Label label = new Label(composite, SWT.NONE);
-		label.setLayoutData(gd);
-		label.setText(text);
-		return label;
-
-	}
-
 	private void createLastDetectedSection(Composite container) {
 		Composite lastDetectedCompositeContainer = new Composite(container, SWT.NONE);
 		lastDetectedCompositeContainer.setLayout(new GridLayout(3, false));
 
-		label = createLabel(lastDetectedCompositeContainer, "Last Detected");
+		Util.createLabel(lastDetectedCompositeContainer, "Last Detected");
 
 		createLastDetectedCombo(lastDetectedCompositeContainer);
 
 		Composite lastDetectedComposite = new Composite(lastDetectedCompositeContainer, SWT.NONE);
 		lastDetectedComposite.setLayout(new GridLayout(2, false));
 
-		label = createLabel(lastDetectedComposite, "From");
+		Util.createLabel(lastDetectedComposite, "From");
 
 		dateTimeFrom = new DateTime(lastDetectedComposite, SWT.DROP_DOWN);
 
-		label = createLabel(lastDetectedComposite, "To");
+		Util.createLabel(lastDetectedComposite, "To");
 
 		dateTimeTo = new DateTime(lastDetectedComposite, SWT.DROP_DOWN);
 
@@ -433,7 +398,7 @@ public class FilterDialog extends Dialog {
 		newShell.setText("Filter");
 	}
 
-	protected void saveFilter() {
+	private void saveFilter() {
 		Long serverId = getSelectedServerId();
 		prefs.putLong(Constants.SERVER_ID, serverId);
 		String appId = getSelectedAppId();

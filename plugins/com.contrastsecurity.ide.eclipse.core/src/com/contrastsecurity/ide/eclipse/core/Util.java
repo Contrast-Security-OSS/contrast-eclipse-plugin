@@ -19,7 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.apache.commons.lang.StringUtils;
+
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.http.TraceFilterForm;
 import com.contrastsecurity.models.Organization;
@@ -132,6 +140,24 @@ public class Util {
 		}
 
 		return buffer.toString();
+	}
+
+	public static ComboViewer createComboViewer(Composite composite) {
+		ComboViewer comboViewer = new ComboViewer(composite, SWT.READ_ONLY);
+		comboViewer.getControl().setFont(composite.getFont());
+		comboViewer.setLabelProvider(new LabelProvider());
+		comboViewer.setContentProvider(new ArrayContentProvider());
+		return comboViewer;
+	}
+
+	public static Label createLabel(Composite composite, String text) {
+		GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
+
+		Label label = new Label(composite, SWT.NONE);
+		label.setLayoutData(gd);
+		label.setText(text);
+		return label;
+
 	}
 
 }

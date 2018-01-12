@@ -16,10 +16,11 @@ package com.contrastsecurity.ide.eclipse.core.extended;
 
 import java.util.List;
 
-public class BaseResponse {
+public class TagsResource {
 
     private String success;
     private List<String> messages;
+    private List<String> tags;
 
     public String getSuccess() {
         return success;
@@ -35,5 +36,13 @@ public class BaseResponse {
 
     public void setMessages(List<String> messages) {
         this.messages = messages;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
     }
 }

@@ -14,26 +14,18 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.core.extended;
 
-import java.util.List;
+public class TagRequest {
+    private String tag;
 
-public class BaseResponse {
-
-    private String success;
-    private List<String> messages;
-
-    public String getSuccess() {
-        return success;
+    public TagRequest(String tag) {
+        this.tag = tag;
     }
 
-    public void setSuccess(String success) {
-        this.success = success;
+    public String getTag() {
+        return tag;
     }
 
-    public List<String> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(List<String> messages) {
-        this.messages = messages;
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }

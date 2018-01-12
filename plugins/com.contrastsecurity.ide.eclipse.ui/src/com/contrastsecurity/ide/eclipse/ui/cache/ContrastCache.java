@@ -17,38 +17,42 @@ package com.contrastsecurity.ide.eclipse.ui.cache;
 import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
 import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
 import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
+import com.contrastsecurity.ide.eclipse.core.extended.TagsResource;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
 public class ContrastCache {
 	private static final int MAX_CACHE_SIZE = 50;
 
-	private ConcurrentLinkedHashMap<Key, EventSummaryResource> eventSummaryResources =
-			 new ConcurrentLinkedHashMap.Builder<Key, EventSummaryResource>()
-			.initialCapacity(MAX_CACHE_SIZE / 2)
-			.maximumWeightedCapacity(MAX_CACHE_SIZE)
-			.build();
-	private ConcurrentLinkedHashMap<Key, StoryResource> storyResources =
-			 new ConcurrentLinkedHashMap.Builder<Key, StoryResource>()
-			.initialCapacity(MAX_CACHE_SIZE / 2)
-			.maximumWeightedCapacity(MAX_CACHE_SIZE)
-			.build();
-	private ConcurrentLinkedHashMap<Key, HttpRequestResource> httpRequestResources =
-			 new ConcurrentLinkedHashMap.Builder<Key, HttpRequestResource>()
-			.initialCapacity(MAX_CACHE_SIZE / 2)
-			.maximumWeightedCapacity(MAX_CACHE_SIZE)
-			.build();
+	private ConcurrentLinkedHashMap<Key, TagsResource> tagsResources = new ConcurrentLinkedHashMap.Builder<Key, TagsResource>()
+			.initialCapacity(MAX_CACHE_SIZE / 2).maximumWeightedCapacity(MAX_CACHE_SIZE).build();
+
+	private ConcurrentLinkedHashMap<Key, EventSummaryResource> eventSummaryResources = new ConcurrentLinkedHashMap.Builder<Key, EventSummaryResource>()
+			.initialCapacity(MAX_CACHE_SIZE / 2).maximumWeightedCapacity(MAX_CACHE_SIZE).build();
+	private ConcurrentLinkedHashMap<Key, StoryResource> storyResources = new ConcurrentLinkedHashMap.Builder<Key, StoryResource>()
+			.initialCapacity(MAX_CACHE_SIZE / 2).maximumWeightedCapacity(MAX_CACHE_SIZE).build();
+	private ConcurrentLinkedHashMap<Key, HttpRequestResource> httpRequestResources = new ConcurrentLinkedHashMap.Builder<Key, HttpRequestResource>()
+			.initialCapacity(MAX_CACHE_SIZE / 2).maximumWeightedCapacity(MAX_CACHE_SIZE).build();
+
 	public ConcurrentLinkedHashMap<Key, EventSummaryResource> getEventSummaryResources() {
 		return eventSummaryResources;
 	}
+
 	public ConcurrentLinkedHashMap<Key, StoryResource> getStoryResources() {
 		return storyResources;
 	}
+
 	public ConcurrentLinkedHashMap<Key, HttpRequestResource> getHttpRequestResources() {
 		return httpRequestResources;
 	}
+
+	public ConcurrentLinkedHashMap<Key, TagsResource> getTagsResources() {
+		return tagsResources;
+	}
+
 	public void clear() {
 		eventSummaryResources.clear();
 		storyResources.clear();
 		httpRequestResources.clear();
+		tagsResources.clear();
 	}
 }
