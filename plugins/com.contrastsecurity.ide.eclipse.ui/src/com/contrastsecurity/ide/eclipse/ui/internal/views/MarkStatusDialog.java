@@ -14,7 +14,6 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.views;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,12 +29,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.ide.eclipse.core.Constants;
-import com.contrastsecurity.ide.eclipse.core.extended.BaseResponse;
-import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.extended.TraceStatusRequest;
-import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.StatusConstants;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 
@@ -58,7 +53,6 @@ public class MarkStatusDialog extends Dialog {
 			"Other"
 			};
 	
-	private ExtendedContrastSDK extendedContrastSDK;
 	private String traceId;
 	private String status;
 	private IStatusListener listener;
@@ -67,9 +61,8 @@ public class MarkStatusDialog extends Dialog {
 	private Combo reasonCombo;
 	private Text noteText;
 	
-	public MarkStatusDialog(Shell shell, ExtendedContrastSDK extendedContrastSDK, String traceId) {
+	public MarkStatusDialog(Shell shell, String traceId) {
 		super(shell);
-		this.extendedContrastSDK = extendedContrastSDK;
 		this.traceId = traceId;
 	}
 	
@@ -126,14 +119,14 @@ public class MarkStatusDialog extends Dialog {
 	
 	@Override
 	protected void okPressed() {
-		markStatus(true);
+		markStatus();
 	}
 	
 	public void setStatusListener(IStatusListener listener) {
 		this.listener = listener;
 	}
 	
-	private void markStatus(boolean addComments) {
+	private void markStatus() {
 		List<String> traces = new ArrayList<>();
 		traces.add(traceId);
 		
@@ -145,26 +138,8 @@ public class MarkStatusDialog extends Dialog {
 		if(Constants.VULNERABILITY_STATUS_NOT_A_PROBLEM_API_REQUEST_STRING.equals(status))
 			request.setSubstatus(reasonCombo.getText());
 		
-		System.out.println(request.toString());
-		
-		try {
-			BaseResponse response = extendedContrastSDK.markStatus(ContrastUIActivator.getOrgUuid(), request);
-			if(response.getSuccess()) {
-				if(listener != null)
-					listener.onStatusChange(statusCombo.getText());
-				super.okPressed();
-			}
-		}
-		catch (UnauthorizedException e1) {
-			ContrastUIActivator.log(e1);
-			UIElementUtils.ShowErrorMessage(getShell(), "You don't have authority to perform this operation.");
-		} 
-		catch (IOException e1) {
-			ContrastUIActivator.log(e1);
-			UIElementUtils.ShowErrorMessage(getShell(), "Request failed. If error persists, contact support.");
-		}
+		if(listener != null)
+			listener.onStatusChange(statusCombo.getText(), request);
 	}
-	
-	
 
 }

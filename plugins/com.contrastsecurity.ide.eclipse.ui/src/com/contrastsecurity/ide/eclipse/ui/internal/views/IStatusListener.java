@@ -14,8 +14,10 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.views;
 
+import com.contrastsecurity.ide.eclipse.core.extended.TraceStatusRequest;
+
 public interface IStatusListener {
 
-	public void onStatusChange(String status);
+	public void onStatusChange(String status, TraceStatusRequest request);
 	
 }
