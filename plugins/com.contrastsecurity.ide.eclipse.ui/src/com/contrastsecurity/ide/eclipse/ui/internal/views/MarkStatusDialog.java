@@ -55,7 +55,8 @@ public class MarkStatusDialog extends Dialog {
 	
 	private String traceId;
 	private String status;
-	private IStatusListener listener;
+	private String visualStatus;
+	private TraceStatusRequest request;
 	
 	private Combo statusCombo;
 	private Combo reasonCombo;
@@ -64,6 +65,7 @@ public class MarkStatusDialog extends Dialog {
 	public MarkStatusDialog(Shell shell, String traceId) {
 		super(shell);
 		this.traceId = traceId;
+		status = visualStatus = StatusConstants.CONFIRMED;
 	}
 	
 	@Override
@@ -84,8 +86,7 @@ public class MarkStatusDialog extends Dialog {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				System.out.println(statusCombo.getText());
-				status = statusCombo.getText();
+				status = visualStatus = statusCombo.getText();
 				
 				if(StatusConstants.NOT_A_PROBLEM.equals(status)) {
 					reasonCombo.setEnabled(true);
@@ -122,15 +123,11 @@ public class MarkStatusDialog extends Dialog {
 		markStatus();
 	}
 	
-	public void setStatusListener(IStatusListener listener) {
-		this.listener = listener;
-	}
-	
 	private void markStatus() {
 		List<String> traces = new ArrayList<>();
 		traces.add(traceId);
 		
-		TraceStatusRequest request = new TraceStatusRequest();
+		request = new TraceStatusRequest();
 		request.setTraces(traces);
 		request.setStatus(status);
 		if(StringUtils.isNotBlank(noteText.getText()))
@@ -138,8 +135,15 @@ public class MarkStatusDialog extends Dialog {
 		if(Constants.VULNERABILITY_STATUS_NOT_A_PROBLEM_API_REQUEST_STRING.equals(status))
 			request.setSubstatus(reasonCombo.getText());
 		
-		if(listener != null)
-			listener.onStatusChange(statusCombo.getText(), request);
+		super.okPressed();
+	}
+	
+	public TraceStatusRequest getTraceStatusRequest() {
+		return request;
+	}
+	
+	public String getSelectedStatus() {
+		return visualStatus;
 	}
 
 }
