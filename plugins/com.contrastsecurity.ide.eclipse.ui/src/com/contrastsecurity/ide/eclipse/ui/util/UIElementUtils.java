@@ -14,6 +14,9 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.util;
 
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
@@ -41,6 +44,14 @@ public class UIElementUtils {
 		return label;
 	}
 	
+	public static Label createLogoLabel(Composite composite, Image image) {
+		GridData gd = new GridData(SWT.END, SWT.FILL, true, false);
+		Label label = new Label(composite, SWT.NONE);
+		label.setLayoutData(gd);
+		label.setImage(image);
+		return label;
+	}
+	
 	//====================  ComboView  ====================
 	
 	public static Combo createCombo(Composite parent, String[] items) {
@@ -51,6 +62,14 @@ public class UIElementUtils {
 		combo.setItems(items);
 		
 		return combo;
+	}
+	
+	public static ComboViewer createComboViewer(Composite composite) {
+		ComboViewer comboViewer = new ComboViewer(composite, SWT.READ_ONLY);
+		comboViewer.getControl().setFont(composite.getFont());
+		comboViewer.setLabelProvider(new LabelProvider());
+		comboViewer.setContentProvider(new ArrayContentProvider());
+		return comboViewer;
 	}
 	
 	//====================  Text  ====================

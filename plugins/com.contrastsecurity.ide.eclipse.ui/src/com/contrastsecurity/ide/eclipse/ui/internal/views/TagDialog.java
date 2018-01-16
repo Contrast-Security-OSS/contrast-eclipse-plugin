@@ -51,10 +51,10 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.core.extended.TagsResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.TagLabelProvider;
+import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 
 public class TagDialog extends Dialog {
 
@@ -94,8 +94,8 @@ public class TagDialog extends Dialog {
 		Composite container = (Composite) super.createDialogArea(parent);
 		Composite comboComposite = new Composite(container, SWT.NONE);
 		comboComposite.setLayout(new GridLayout(2, false));
-		Util.createLabel(comboComposite, "Apply existing tag");
-		tagsComboViewer = Util.createComboViewer(comboComposite);
+		UIElementUtils.createLabel(comboComposite, "Apply existing tag");
+		tagsComboViewer = UIElementUtils.createComboViewer(comboComposite);
 		populateTagsComboViewer(tagsComboViewer, traceTagsResource, orgTagsResource);
 		tagsComboViewer.addSelectionChangedListener(tagsComboViewerListener);
 		tagsComboViewer.getCombo().addListener(SWT.MouseVerticalWheel, new Listener() {
@@ -109,7 +109,7 @@ public class TagDialog extends Dialog {
 
 		Composite createTagComposite = new Composite(container, SWT.NONE);
 		createTagComposite.setLayout(new GridLayout(3, false));
-		Util.createLabel(createTagComposite, "Create and apply a new tag");
+		UIElementUtils.createLabel(createTagComposite, "Create and apply a new tag");
 		createTagText = new Text(createTagComposite, SWT.BORDER);
 
 		Button createTagButton = createButton(createTagComposite, "Create");
@@ -125,7 +125,7 @@ public class TagDialog extends Dialog {
 		Composite appliedTagsComposite = new Composite(container, SWT.NONE);
 		appliedTagsComposite.setLayout(new GridLayout(2, false));
 
-		Util.createLabel(appliedTagsComposite, "Applied tags");
+		UIElementUtils.createLabel(appliedTagsComposite, "Applied tags");
 		tableViewer = createTableViewer(container);
 
 		String[] traceTagsArray = traceTagsResource.getTags().toArray(new String[traceTagsResource.getTags().size()]);

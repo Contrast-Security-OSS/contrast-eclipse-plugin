@@ -215,7 +215,7 @@ public class ExtendedContrastSDK extends ContrastSDK {
 		InputStreamReader reader = null;
 		try {
 			String url = String.format(UrlConstants.GET_TRACE, orgUuid, traceId);
-			System.out.println(url);
+			
 			is = makeRequest(HttpMethod.GET, url);
 			reader = new InputStreamReader(is);
 			return gson.fromJson(reader, TraceResponse.class);
