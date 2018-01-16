@@ -18,15 +18,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.apache.commons.lang.StringUtils;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.http.TraceFilterForm;
@@ -160,4 +161,11 @@ public class Util {
 
 	}
 
+	public static Label createLabel(Composite composite, Image image) {
+		GridData gd = new GridData(SWT.END, SWT.FILL, true, false);
+		Label label = new Label(composite, SWT.NONE);
+		label.setLayoutData(gd);
+		label.setImage(image);
+		return label;
+	}
 }

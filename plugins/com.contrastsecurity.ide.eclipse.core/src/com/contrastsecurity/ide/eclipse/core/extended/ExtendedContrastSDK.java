@@ -49,7 +49,8 @@ public class ExtendedContrastSDK extends ContrastSDK {
 		this.gson = new Gson();
 	}
 
-	public EventSummaryResource getEventSummary(String orgUuid, String traceId) throws IOException, UnauthorizedException {
+	public EventSummaryResource getEventSummary(String orgUuid, String traceId)
+			throws IOException, UnauthorizedException {
 		InputStream is = null;
 		InputStreamReader reader = null;
 		try {
@@ -57,11 +58,10 @@ public class ExtendedContrastSDK extends ContrastSDK {
 			is = makeRequest(HttpMethod.GET, eventSummaryUrl);
 			reader = new InputStreamReader(is);
 			EventSummaryResource resource = gson.fromJson(reader, EventSummaryResource.class);
-			for (EventResource event:resource.getEvents()) {
-				if(event.getCollapsedEvents() != null && !event.getCollapsedEvents().isEmpty()) {
+			for (EventResource event : resource.getEvents()) {
+				if (event.getCollapsedEvents() != null && !event.getCollapsedEvents().isEmpty()) {
 					getCollapsedEventsDetails(event, orgUuid, traceId);
-				}
-				else {
+				} else {
 					EventDetails eventDetails = getEventDetails(orgUuid, traceId, event);
 					event.setEvent(eventDetails.getEvent());
 				}
@@ -72,9 +72,10 @@ public class ExtendedContrastSDK extends ContrastSDK {
 			IOUtils.closeQuietly(reader);
 		}
 	}
-	
-	private void getCollapsedEventsDetails(EventResource parentEvent, final String orgUuid, final String traceId) throws IOException, UnauthorizedException {
-		for(EventResource event : parentEvent.getCollapsedEvents()) {
+
+	private void getCollapsedEventsDetails(EventResource parentEvent, final String orgUuid, final String traceId)
+			throws IOException, UnauthorizedException {
+		for (EventResource event : parentEvent.getCollapsedEvents()) {
 			EventDetails eventDetails = getEventDetails(orgUuid, traceId, event);
 			event.setEvent(eventDetails.getEvent());
 			event.setParent(parentEvent);
@@ -176,6 +177,21 @@ public class ExtendedContrastSDK extends ContrastSDK {
 				}
 			}
 			return story;
+		} finally {
+			IOUtils.closeQuietly(is);
+			IOUtils.closeQuietly(reader);
+		}
+	}
+
+	public RecommendationResource getRecommendation(String orgUuid, String traceId)
+			throws IOException, UnauthorizedException {
+		InputStream is = null;
+		InputStreamReader reader = null;
+		try {
+			String recommendationUrl = String.format(UrlConstants.RECOMMENDATION, orgUuid, traceId);
+			is = makeRequest(HttpMethod.GET, recommendationUrl);
+			reader = new InputStreamReader(is);
+			return gson.fromJson(reader, RecommendationResource.class);
 		} finally {
 			IOUtils.closeQuietly(is);
 			IOUtils.closeQuietly(reader);

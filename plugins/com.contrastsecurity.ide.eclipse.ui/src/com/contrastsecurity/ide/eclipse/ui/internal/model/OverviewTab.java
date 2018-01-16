@@ -101,6 +101,7 @@ public class OverviewTab extends AbstractTab {
 					textArea.setBottomMargin(padding);
 					textArea.setWordWrap(true);
 					textArea.setCaret(null);
+					textArea.setEditable(false);
 					gd = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 					textArea.setLayoutData(gd);
 					textArea.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GRAY));

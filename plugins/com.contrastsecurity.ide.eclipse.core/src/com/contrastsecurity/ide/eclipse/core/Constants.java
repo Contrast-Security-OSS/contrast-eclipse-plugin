@@ -72,6 +72,8 @@ public interface Constants {
 	static final Color P20_COLOR = new Color(Display.getDefault(), 247, 182, 0);
 	static final Color TAG_COLOR = new Color(Display.getDefault(), 174, 205, 67);
 
+	static final Color GOOD_PARAM_COLOR = new Color(Display.getDefault(), 0, 128, 0);
+
 	static final Color ICON_COLOR_CREATION = new Color(Display.getDefault(), 247, 182, 0);
 	static final Color ICON_COLOR_PROPAGATION = new Color(Display.getDefault(), 153, 153, 153);
 	static final Color ICON_COLOR_TRIGGER = new Color(Display.getDefault(), 230, 48, 37);
@@ -128,5 +130,82 @@ public interface Constants {
 	static final String VULNERABILITY_STATUS_NOT_A_PROBLEM_API_REQUEST_STRING = "NotAProblem";
 
 	static final String CURRENT_OFFSET = "currentOffset";
+
+	public static final String LINK_DELIM = "$$LINK_DELIM$$";
+
+	public static final String OPEN_TAG_PARAGRAPH = "{{#paragraph}}";
+	public static final String CLOSE_TAG_PARAGRAPH = "{{/paragraph}}";
+	public static final String OPEN_TAG_LINK = "{{#link}}";
+	public static final String CLOSE_TAG_LINK = "{{/link}}";
+	public static final String OPEN_TAG_BAD_PARAM = "{{#badParam}}";
+	public static final String CLOSE_TAG_BAD_PARAM = "{{/badParam}}";
+	public static final String OPEN_TAG_JAVA_BLOCK = "{{#javaBlock}}";
+	public static final String CLOSE_TAG_JAVA_BLOCK = "{{/javaBlock}}";
+	public static final String OPEN_TAG_GOOD_PARAM = "{{#goodParam}}";
+	public static final String CLOSE_TAG_GOOD_PARAM = "{{/goodParam}}";
+	public static final String OPEN_TAG_C_SHARP_BLOCK = "{{#csharpBlock}}";
+	public static final String CLOSE_TAG_C_SHARP_BLOCK = "{{/csharpBlock}}";
+	public static final String OPEN_TAG_HTML_BLOCK = "{{#htmlBlock}}";
+	public static final String CLOSE_TAG_HTML_BLOCK = "{{/htmlBlock}}";
+	public static final String OPEN_TAG_JAVASCRIPT_BLOCK = "{{#javascriptBlock}}";
+	public static final String CLOSE_TAG_JAVASCRIPT_BLOCK = "{{/javascriptBlock}}";
+	public static final String OPEN_TAG_XML_BLOCK = "{{#xmlBlock}}";
+	public static final String CLOSE_TAG_XML_BLOCK = "{{/xmlBlock}}";
+	public static final String OPEN_TAG_HEADER = "{{#header}}";
+	public static final String CLOSE_TAG_HEADER = "{{/header}}";
+	public static final String LINK_TAG_1 = "{{link1}}";
+	public static final String LINK_TAG_2 = "{{link2}}";
+	public static final String OPEN_TAG_CODE = "{{#code}}";
+	public static final String CLOSE_TAG_CODE = "{{/code}}";
+	public static final String OPEN_TAG_P = "{{#p}}";
+	public static final String CLOSE_TAG_P = "{{/p}}";
+	public static final String OPEN_TAG_UNORDERED_LIST = "{{#unorderedList}}";
+	public static final String CLOSE_TAG_UNORDERED_LIST = "{{/unorderedList}}";
+	public static final String OPEN_TAG_LIST_ELEMENT = "{{#listElement}}";
+	public static final String CLOSE_TAG_LIST_ELEMENT = "{{/listElement}}";
+	public static final String OPEN_TAG_FOCUS = "{{#focus}}";
+	public static final String CLOSE_TAG_FOCUS = "{{/focus}}";
+	public static final String OPEN_TAG_BAD_CONFIG = "{{#badConfig}}";
+	public static final String CLOSE_TAG_BAD_CONFIG = "{{/badConfig}}";
+	public static final String OPEN_TAG_BLOCK = "{{#block}}";
+	public static final String CLOSE_TAG_BLOCK = "{{/block}}";
+	public static final String OPEN_TAG_BLOCK_QUOTE = "{{#blockQuote}}";
+	public static final String CLOSE_TAG_BLOCK_QUOTE = "{{/blockQuote}}";
+	public static final String OPEN_TAG_EMPHASIZE = "{{#emphasize}}";
+	public static final String CLOSE_TAG_EMPHASIZE = "{{/emphasize}}";
+	public static final String OPEN_TAG_EXAMPLE_TEXT = "{{#exampleText}}";
+	public static final String CLOSE_TAG_EXAMPLE_TEXT = "{{/exampleText}}";
+	public static final String OPEN_TAG_GOOD_CONFIG = "{{#goodConfig}}";
+	public static final String CLOSE_TAG_GOOD_CONFIG = "{{/goodConfig}}";
+	public static final String OPEN_TAG_ORDERED_LIST = "{{#orderedList}}";
+	public static final String CLOSE_TAG_ORDERED_LIST = "{{/orderedList}}";
+	public static final String OPEN_TAG_RISK_EVIDENCE = "{{#riskEvidence}}";
+	public static final String CLOSE_TAG_RISK_EVIDENCE = "{{/riskEvidence}}";
+	public static final String OPEN_TAG_TABLE = "{{#table}}";
+	public static final String CLOSE_TAG_TABLE = "{{/table}}";
+	public static final String OPEN_TAG_TABLE_BODY = "{{#tableBody}}";
+	public static final String CLOSE_TAG_TABLE_BODY = "{{/tableBody}}";
+	public static final String OPEN_TAG_TABLE_CELL = "{{#tableCell}}";
+	public static final String CLOSE_TAG_TABLE_CELL = "{{/tableCell}}";
+	public static final String OPEN_TAG_TABLE_CELL_ALT = "{{#tableCellAlt}}";
+	public static final String CLOSE_TAG_TABLE_CELL_ALT = "{{/tableCellAlt}}";
+	public static final String OPEN_TAG_TABLE_HEADER = "{{#tableHeader}}";
+	public static final String CLOSE_TAG_TABLE_HEADER = "{{/tableHeader}}";
+	public static final String OPEN_TAG_TABLE_HEADER_ROW = "{{#tableHeaderRow}}";
+	public static final String CLOSE_TAG_TABLE_HEADER_ROW = "{{/tableHeaderRow}}";
+	public static final String OPEN_TAG_TABLE_ROW = "{{#tableRow}}";
+	public static final String CLOSE_TAG_TABLE_ROW = "{{/tableRow}}";
+
+	public static final String[] MUSTACHE_CONSTANTS = { OPEN_TAG_CODE, CLOSE_TAG_CODE, OPEN_TAG_P, CLOSE_TAG_P,
+			OPEN_TAG_PARAGRAPH, CLOSE_TAG_PARAGRAPH, OPEN_TAG_LINK, CLOSE_TAG_LINK, OPEN_TAG_HEADER, CLOSE_TAG_HEADER,
+			LINK_TAG_1, LINK_TAG_2, MUSTACHE_NL, OPEN_TAG_UNORDERED_LIST, CLOSE_TAG_UNORDERED_LIST,
+			OPEN_TAG_LIST_ELEMENT, CLOSE_TAG_LIST_ELEMENT, OPEN_TAG_FOCUS, CLOSE_TAG_FOCUS, OPEN_TAG_BAD_CONFIG,
+			CLOSE_TAG_BAD_CONFIG, OPEN_TAG_BLOCK, CLOSE_TAG_BLOCK, OPEN_TAG_BLOCK_QUOTE, CLOSE_TAG_BLOCK_QUOTE,
+			OPEN_TAG_EMPHASIZE, CLOSE_TAG_EMPHASIZE, OPEN_TAG_EXAMPLE_TEXT, CLOSE_TAG_EXAMPLE_TEXT,
+			OPEN_TAG_GOOD_CONFIG, CLOSE_TAG_GOOD_CONFIG, OPEN_TAG_ORDERED_LIST, CLOSE_TAG_ORDERED_LIST,
+			OPEN_TAG_RISK_EVIDENCE, CLOSE_TAG_RISK_EVIDENCE, OPEN_TAG_TABLE, CLOSE_TAG_TABLE, OPEN_TAG_TABLE_BODY,
+			CLOSE_TAG_TABLE_BODY, OPEN_TAG_TABLE_CELL, CLOSE_TAG_TABLE_CELL, OPEN_TAG_TABLE_CELL_ALT,
+			CLOSE_TAG_TABLE_CELL_ALT, OPEN_TAG_TABLE_HEADER, CLOSE_TAG_TABLE_HEADER, OPEN_TAG_TABLE_HEADER_ROW,
+			CLOSE_TAG_TABLE_HEADER_ROW, OPEN_TAG_TABLE_ROW, CLOSE_TAG_TABLE_ROW };
 
 }
