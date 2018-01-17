@@ -36,11 +36,19 @@ public class UIElementUtils {
 	//====================  Label  ====================
 	
 	public static Label createLabel(Composite parent, String text) {
-		GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
-
+		return createLabel(parent, text, 1, 1);
+	}
+	
+	public static Label createLabel(Composite parent, String text, int hSpan, int vSpan) {
+		GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false, hSpan, vSpan);
+		return createBasicLabel(parent, gd, text);
+	}
+	
+	public static Label createBasicLabel(Composite parent, GridData gd, String text) {
 		Label label = new Label(parent, SWT.NONE);
 		label.setLayoutData(gd);
 		label.setText(text);
+		
 		return label;
 	}
 	
@@ -64,6 +72,16 @@ public class UIElementUtils {
 		return combo;
 	}
 	
+	public static Combo createCombo(Composite parent, String[] items, int horizontalSpan, int verticalSpan){
+		GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false, horizontalSpan, verticalSpan);
+		
+		Combo combo = new Combo(parent, SWT.READ_ONLY);
+		combo.setLayoutData(gd);
+		combo.setItems(items);
+		
+		return combo;
+	}
+	
 	public static ComboViewer createComboViewer(Composite composite) {
 		ComboViewer comboViewer = new ComboViewer(composite, SWT.READ_ONLY);
 		comboViewer.getControl().setFont(composite.getFont());
@@ -74,11 +92,11 @@ public class UIElementUtils {
 	
 	//====================  Text  ====================
 	
-	public static Text createText(Composite parent, int verticalSpan) {
-		return createText(parent, verticalSpan, null);
+	public static Text createMultiText(Composite parent, int verticalSpan) {
+		return createMultiText(parent, verticalSpan, null);
 	}
 	
-	public static Text createText(Composite parent, int verticalSpan, Integer widthHint) {
+	public static Text createMultiText(Composite parent, int verticalSpan, Integer widthHint) {
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gd.verticalSpan = verticalSpan;
 		if(widthHint != null)
@@ -90,6 +108,21 @@ public class UIElementUtils {
 		return text;
 	}
 	
+	public static Text createText(Composite parent, int hSpan, int vSpan) {
+		return createText(parent, hSpan, vSpan, SWT.BORDER);
+	}
+	
+	public static Text createText(Composite parent, int hSpan, int vSpan, int style) {
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, hSpan, vSpan);
+		return createBasicText(parent, gd, style);
+	}
+	
+	public static Text createBasicText(Composite parent, GridData gd, int style) {
+		Text text = new Text(parent, style);
+		text.setLayoutData(gd);
+		return text;
+	}
+	
 	//====================  Button  ====================
 	
 	public static Button createButton(Composite parent, String text) {
@@ -97,7 +130,13 @@ public class UIElementUtils {
 	}
 	
 	public static Button createButton(Composite parent, String text, Integer widthHint) {
-		Button button = createBasicButton(parent, widthHint);
+		Button button = createBasicButton(parent, 1, 1, widthHint);
+		button.setText(text);
+		return button;
+	}
+	
+	public static Button createButton(Composite parent, String text, int hSpan, int vSpan) {
+		Button button = createBasicButton(parent, hSpan, vSpan, null);
 		button.setText(text);
 		return button;
 	}
@@ -107,18 +146,26 @@ public class UIElementUtils {
 	}
 	
 	public static Button createButton(Composite parent, Image image, Integer widthHint) {
-		Button button = createBasicButton(parent, widthHint);
+		Button button = createBasicButton(parent, 1, 1, widthHint);
 		button.setImage(image);
 		return button;
 	}
 	
-	public static Button createBasicButton(Composite parent, Integer widthHint) {
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+	public static Button createBasicButton(Composite parent, int hSpan, int vSpan, Integer widthHint) {
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, hSpan, vSpan);
 		if(widthHint != null)
 			gd.widthHint = widthHint;
 		
 		Button button = new Button(parent, SWT.PUSH);
 		button.setLayoutData(gd);
+		
+		return button;
+	}
+	
+	public static Button createButton(Composite parent, GridData gd, String text) {
+		Button button = new Button(parent, SWT.PUSH);
+		button.setLayoutData(gd);
+		button.setText(text);
 		
 		return button;
 	}

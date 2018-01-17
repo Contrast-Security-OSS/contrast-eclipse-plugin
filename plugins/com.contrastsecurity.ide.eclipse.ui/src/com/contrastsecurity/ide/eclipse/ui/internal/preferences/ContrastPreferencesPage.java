@@ -52,6 +52,7 @@ import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
+import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 import com.contrastsecurity.models.Organization;
 import com.contrastsecurity.sdk.ContrastSDK;
 
@@ -59,6 +60,9 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage";
 	private static final String BLANK = "";
+	private final static String URL_CONTRAST_SUBFIX = "/Contrast";
+	private final static String URL_API_SUBFIX = "/api";
+	
 	private Text teamServerText;
 	private Text serviceKeyText;
 	private Text apiKeyText;
@@ -94,8 +98,16 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	 */
 	@Override
 	public boolean performOk() {
+		String tsUrl = teamServerText.getText(); 
+		if(!tsUrl.endsWith(URL_API_SUBFIX)){
+			if(!tsUrl.endsWith(URL_CONTRAST_SUBFIX))
+				tsUrl += URL_CONTRAST_SUBFIX + URL_API_SUBFIX;
+			else
+				tsUrl += URL_API_SUBFIX;
+		}
+		
 		ContrastCoreActivator.saveSelectedPreferences(
-				teamServerText.getText(), 
+				tsUrl, 
 				serviceKeyText.getText(), 
 				apiKeyText.getText(), 
 				usernameText.getText(), 
@@ -108,41 +120,29 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	@Override
 	protected Control createContents(Composite parent) {
 		final Composite composite = new Composite(parent, SWT.NULL);
-		final GridLayout layout = new GridLayout();
-		layout.numColumns = 3;
+		final GridLayout layout = new GridLayout(3, false);
 		layout.marginWidth = 0;
 		layout.marginHeight = 0;
 		composite.setLayout(layout);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
 		composite.setLayoutData(gd);
-		createLabel(composite, "Team Server:");
-		teamServerText = new Text(composite, SWT.BORDER);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd.horizontalSpan = 2;
-		teamServerText.setLayoutData(gd);
-		addWarn(composite, "This should be the address of your TeamServer from which vulnerability data");
-		addWarn(composite, "should be retrieved. If you’re using our SaaS, it’s okay to leave this in its default.");
+		
+		UIElementUtils.createLabel(composite, "Contrast URL:");
+		teamServerText = UIElementUtils.createText(composite, 2, 1);
+		teamServerText.setToolTipText("This should be the address of your TeamServer from which vulnerability data should be retrieved.\n If you’re using our SaaS, it’s okay to leave this in its default.");
 
-		createLabel(composite, "Username:");
-		usernameText = new Text(composite, SWT.BORDER);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd.horizontalSpan = 2;
-		usernameText.setLayoutData(gd);
+		UIElementUtils.createLabel(composite, "Username:");
+		usernameText = UIElementUtils.createText(composite, 2, 1);
 		
-		createLabel(composite, "Service Key:");
-		serviceKeyText = new Text(composite, SWT.BORDER);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd.horizontalSpan = 2;
-		serviceKeyText.setLayoutData(gd);
+		UIElementUtils.createLabel(composite, "Service Key:");
+		serviceKeyText = UIElementUtils.createText(composite, 2, 1);
+		serviceKeyText.setToolTipText("You can find your Service Key at the bottom of your Account Profile, under \"Your Keys\".");
 		
-		createLabel(composite, "Organization: ");
+		UIElementUtils.createLabel(composite, "Organization: ");
 		createOrganizationCombo(composite);
 		createOrganizationButtons(composite);
 		
-		addWarn(composite, "Your Service Key and API key are available by logging into your TeamServer using");
-		addWarn(composite, "your regular account credentials. Go \"My Account\", then \"API Key\".");
-		
-		createLabel(composite, BLANK);
+		UIElementUtils.createLabel(composite, BLANK);
 		testConnection = new Button(composite, SWT.PUSH);
 		testConnection.setText("Test Connection");
 		gd = new GridData(SWT.CENTER, SWT.FILL, false, false);
@@ -224,13 +224,13 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		gd.horizontalSpan = 3;
 		defaultOrganizationGroup.setLayoutData(gd);
 
-		createLabel(defaultOrganizationGroup, "API Key:");
+		UIElementUtils.createLabel(defaultOrganizationGroup, "API Key:");
 		apiKeyText = new Text(defaultOrganizationGroup, SWT.BORDER);
 		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
 		apiKeyText.setLayoutData(gd);
 		apiKeyText.setEditable(false);
 		
-		createLabel(defaultOrganizationGroup, "Uuid:");
+		UIElementUtils.createLabel(defaultOrganizationGroup, "UUID:");
 		organizationUuidText = new Text(defaultOrganizationGroup, SWT.BORDER);
 		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
 		organizationUuidText.setLayoutData(gd);
@@ -420,23 +420,6 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	private void enableTestConnection() {
 		testConnection.setEnabled(!usernameText.getText().isEmpty() && !teamServerText.getText().isEmpty()
 				&& !apiKeyText.getText().isEmpty() && !serviceKeyText.getText().isEmpty());
-	}
-
-	private Label createLabel(final Composite composite, String name) {
-		GridData gd;
-		Label label = new Label(composite, SWT.NONE);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		label.setLayoutData(gd);
-		label.setText(name);
-		return label;
-	}
-
-	private void addWarn(final Composite composite, String warn) {
-		Label label = new Label(composite, SWT.NONE);
-		label.setText(warn);
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd.horizontalSpan = 3;
-		label.setLayoutData(gd);
 	}
 
 	private void initPreferences() {

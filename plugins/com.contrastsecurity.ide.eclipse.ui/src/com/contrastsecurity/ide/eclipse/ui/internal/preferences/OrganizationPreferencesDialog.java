@@ -27,6 +27,7 @@ import com.contrastsecurity.ide.eclipse.core.OrganizationNotFoundException;
 import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
+import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 import com.contrastsecurity.models.Organization;
 import com.contrastsecurity.models.Organizations;
 
@@ -34,7 +35,7 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 	
 	private final static String NEW_DIALOG_TITLE = "Add new Organization";
 	private final static String NEW_DIALOG_INFO = "In order to add a new organization for this user, its required to add"
-			+ " its API key to retrieve orgnizations data.";
+			+ " its API key to retrieve organizations data.";
 	
 	private final static String EDIT_DIALOG_TITLE = "Edit organization";
 	private final static String EDIT_DIALOG_INFO = "To edit an organization, you require API key to retrieve its data.";
@@ -42,7 +43,7 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 	private final static String API_KEY_LABEL_TEXT = "API Key: ";
 	private final static String ORGANIZATION_NAME_LABEL_TEXT = "Organization name: ";
 	private final static String ORGANIZATION_ID_LABEL_TEXT = "Organization UUID: ";
-	private final static String VERIFY_CONNECTION_BTN_TEXT = "Retrieve organizations";
+	private final static String RETRIEVE_ORGANIZATIONS_BTN_TEXT = "Retrieve organizations";
 	
 	private final static int SAVE_SUCCESSFUL = 1;
 	private final static int ORG_ALREADY_EXISTS = 2;
@@ -52,8 +53,7 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 	private Text apiKeyText;
 	private Combo organizationCombo;
 	private Text organizationIdText;
-	private Button verifyConnectionButton;
-	private Label verifyConnectionLabel;
+	private Button retrieveOrganizationsButton;
 	
 	private Button okButton;
 	
@@ -108,14 +108,14 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 	public Control createDialogArea(Composite parent) {
 		Composite area = (Composite) super.createDialogArea(parent);
 		Composite container = new Composite(area, SWT.NONE);
-		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		GridLayout layout = new GridLayout(3, false);
 		container.setLayout(layout);
 		
 		createApiKeyText(container);
 		createOrganizationCombo(container);
 		createOrganizationIdText(container);
-		createVerifyConnectionButton(container);
+		createRetrieveOrganizationsButton(container);
 		
 		if(!isNewOrganization) {
 			OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(organizationName);
@@ -132,13 +132,9 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 		Label apiKeyLabel = new Label(container, SWT.NONE);
 		apiKeyLabel.setText(API_KEY_LABEL_TEXT);
 		
-		GridData gd = new GridData();
-		gd.grabExcessHorizontalSpace = true;
-		gd.horizontalAlignment = GridData.FILL;
-		gd.horizontalSpan = 2;
-		
-		apiKeyText = new Text(container, SWT.BORDER);
-		apiKeyText.setLayoutData(gd);
+		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
+		apiKeyText = UIElementUtils.createBasicText(container, gd, SWT.BORDER);
+		apiKeyText.setToolTipText("You can find your organization API key in the Organization Settings, in the API section.");
 	}
 	
 	private void createOrganizationCombo(Composite container) {
@@ -183,40 +179,34 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 		organizationIdText.setLayoutData(gd);
 	}
 	
-	private void createVerifyConnectionButton(Composite container) {
-		GridData gd = new GridData(SWT.CENTER, SWT.FILL, true, false);
-		gd.horizontalSpan = 3;
-		
-		verifyConnectionButton = new Button(container, SWT.PUSH);
-		verifyConnectionButton.setText(VERIFY_CONNECTION_BTN_TEXT);
-		verifyConnectionButton.setLayoutData(gd);
-		verifyConnectionButton.addSelectionListener(new SelectionListener() {
+	private void createRetrieveOrganizationsButton(Composite container) {
+		GridData gd = new GridData(SWT.CENTER, SWT.FILL, false, false, 3, 1);
+		retrieveOrganizationsButton = UIElementUtils.createButton(container, gd, RETRIEVE_ORGANIZATIONS_BTN_TEXT);
+		retrieveOrganizationsButton.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				try {
 					if(retrieveOrganizationName())
 						organizationCombo.setEnabled(true);
-					else
-						verifyConnectionLabel.setText("No organization found!");
+					else{
+						MessageDialog.openError(getShell(), "", "No organization found!");
+						clearOrganizationsCombo();
+					}
 				}
 				catch(IOException e) {
-					verifyConnectionLabel.setText("Connection failed.");
+					MessageDialog.openError(getShell(), "Connection error", "Connection failed.");
+					clearOrganizationsCombo();
 				}
 				catch(UnauthorizedException e) {
-					verifyConnectionLabel.setText("Unauthorized!! Verify your credentials please.");
+					MessageDialog.openError(getShell(), "Access denied", "Unauthorized!! Verify your credentials please.");
+					clearOrganizationsCombo();
 				}
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nothing */ }
 		});
-		
-		verifyConnectionLabel = new Label(container, SWT.NONE);
-		verifyConnectionLabel.setText("");
-		gd = new GridData(SWT.CENTER, SWT.FILL, true, false);
-		gd.horizontalSpan = 3;
-		verifyConnectionLabel.setLayoutData(gd);
 	}
 	
 	@Override
@@ -261,6 +251,11 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 		}
 		
 		super.okPressed();
+	}
+	
+	private void clearOrganizationsCombo() {
+		organizationCombo.removeAll();
+		organizationCombo.setEnabled(false);
 	}
 	
 	public boolean getIsOrganizationCreated() {

@@ -80,7 +80,7 @@ public class MarkStatusDialog extends Dialog {
 		UIElementUtils.createLabel(contentComposite, "Reason");
 		reasonCombo = UIElementUtils.createCombo(contentComposite, REASON_LIST);
 		UIElementUtils.createLabel(contentComposite, "Comment");
-		noteText = UIElementUtils.createText(contentComposite, 10);
+		noteText = UIElementUtils.createMultiText(contentComposite, 10);
 		
 		statusCombo.addSelectionListener(new SelectionListener() {
 			
