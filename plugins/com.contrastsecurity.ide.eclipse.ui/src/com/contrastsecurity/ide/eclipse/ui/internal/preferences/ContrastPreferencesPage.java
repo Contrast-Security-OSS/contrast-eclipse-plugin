@@ -60,8 +60,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage";
 	private static final String BLANK = "";
-	private final static String URL_CONTRAST_SUBFIX = "/Contrast";
-	private final static String URL_API_SUBFIX = "/api";
+	private final static String URL_CONTRAST_SUFFIX = "/Contrast";
+	private final static String URL_API_SUFFIX = "/api";
 	
 	private Text teamServerText;
 	private Text serviceKeyText;
@@ -99,11 +99,11 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	@Override
 	public boolean performOk() {
 		String tsUrl = teamServerText.getText(); 
-		if(!tsUrl.endsWith(URL_API_SUBFIX)){
-			if(!tsUrl.endsWith(URL_CONTRAST_SUBFIX))
-				tsUrl += URL_CONTRAST_SUBFIX + URL_API_SUBFIX;
+		if(!tsUrl.endsWith(URL_API_SUFFIX)){
+			if(!tsUrl.endsWith(URL_CONTRAST_SUFFIX))
+				tsUrl += URL_CONTRAST_SUFFIX + URL_API_SUFFIX;
 			else
-				tsUrl += URL_API_SUBFIX;
+				tsUrl += URL_API_SUFFIX;
 		}
 		
 		ContrastCoreActivator.saveSelectedPreferences(
