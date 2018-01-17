@@ -98,16 +98,10 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	 */
 	@Override
 	public boolean performOk() {
-		String tsUrl = teamServerText.getText(); 
-		if(!tsUrl.endsWith(URL_API_SUFFIX)){
-			if(!tsUrl.endsWith(URL_CONTRAST_SUFFIX))
-				tsUrl += URL_CONTRAST_SUFFIX + URL_API_SUFFIX;
-			else
-				tsUrl += URL_API_SUFFIX;
-		}
+		verifyTeamServerUrl();
 		
 		ContrastCoreActivator.saveSelectedPreferences(
-				tsUrl, 
+				teamServerText.getText(), 
 				serviceKeyText.getText(), 
 				apiKeyText.getText(), 
 				usernameText.getText(), 
@@ -152,6 +146,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				verifyTeamServerUrl();
 				final String url = teamServerText.getText();
 				URL u;
 		        try {
@@ -273,6 +268,19 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		return composite;
 	}
 	
+	private void verifyTeamServerUrl() {
+		String tsUrl = teamServerText.getText(); 
+		if(tsUrl.endsWith(URL_API_SUFFIX))
+			return;
+		
+		if(!tsUrl.endsWith(URL_CONTRAST_SUFFIX))
+			tsUrl += URL_CONTRAST_SUFFIX + URL_API_SUFFIX;
+		else
+			tsUrl += URL_API_SUFFIX;
+		
+		teamServerText.setText(tsUrl);
+	}
+	
 	private void createOrganizationCombo(final Composite parent) {
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
 		gd.horizontalSpan = 2;
@@ -323,6 +331,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
+				verifyTeamServerUrl();
 				OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(parent.getShell(), usernameText.getText(),
 						serviceKeyText.getText(), teamServerText.getText());
 				dialog.create();
@@ -343,6 +352,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
+				verifyTeamServerUrl();
 				OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(parent.getShell(), usernameText.getText(), 
 						serviceKeyText.getText(), teamServerText.getText(), organizationCombo.getText());
 				dialog.create();
