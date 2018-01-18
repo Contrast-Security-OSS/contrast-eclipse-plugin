@@ -187,8 +187,10 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				try {
-					if(retrieveOrganizationName())
+					if(retrieveOrganizationName()) {
 						organizationCombo.setEnabled(true);
+						apiKeyText.setEnabled(false);
+					}
 					else{
 						MessageDialog.openError(getShell(), "", "No organization found!");
 						clearOrganizationsCombo();
@@ -282,14 +284,18 @@ public class OrganizationPreferencesDialog extends TitleAreaDialog {
 	}
 	
 	private int createOrganizationConfig() {
-		if(!ArrayUtils.contains(ContrastCoreActivator.getOrganizationList(), organizationCombo.getText())) {
+		try {
+			if(ContrastCoreActivator.editOrganization(organizationCombo.getText(), apiKeyText.getText(), organizationIdText.getText()))
+				return SAVE_SUCCESSFUL;
+			else
+				return SAVE_FAILED;
+		}
+		catch(OrganizationNotFoundException e) {
 			if(ContrastCoreActivator.saveNewOrganization(organizationCombo.getText(), apiKeyText.getText(), organizationIdText.getText()))
 				return SAVE_SUCCESSFUL;
-			
-			return SAVE_FAILED;
+			else
+				return SAVE_FAILED;
 		}
-		else
-			return ORG_ALREADY_EXISTS;
 	}
 	
 	private int editOrganizationConfig() {
