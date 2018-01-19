@@ -60,8 +60,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage";
 	private static final String BLANK = "";
-	private final static String URL_CONTRAST_SUFFIX = "/Contrast";
-	private final static String URL_API_SUFFIX = "/api";
+	private final static String URL_SUFFIX = "/Contrast/api";
 	
 	private Text teamServerText;
 	private Text serviceKeyText;
@@ -270,15 +269,18 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	
 	private void verifyTeamServerUrl() {
 		String tsUrl = teamServerText.getText(); 
-		if(tsUrl.endsWith(URL_API_SUFFIX))
+		if(tsUrl.endsWith(URL_SUFFIX))
 			return;
 		
-		if(!tsUrl.endsWith(URL_CONTRAST_SUFFIX))
-			tsUrl += URL_CONTRAST_SUFFIX + URL_API_SUFFIX;
-		else
-			tsUrl += URL_API_SUFFIX;
+		char lastChar = tsUrl.charAt(tsUrl.length() - 1);
+		for(int i = URL_SUFFIX.length() - 1; i > -1; i--) {
+			if(lastChar == URL_SUFFIX.charAt(i) && tsUrl.endsWith(URL_SUFFIX.substring(0, i + 1))) {
+				teamServerText.setText(tsUrl + URL_SUFFIX.substring(i + 1));
+				return;
+			}
+		}
 		
-		teamServerText.setText(tsUrl);
+		teamServerText.setText(tsUrl + URL_SUFFIX);
 	}
 	
 	private void createOrganizationCombo(final Composite parent) {
