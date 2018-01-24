@@ -268,9 +268,16 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	}
 	
 	private void verifyTeamServerUrl() {
-		String tsUrl = teamServerText.getText(); 
+		String tsUrl = teamServerText.getText();
+		
 		if(tsUrl.endsWith(URL_SUFFIX))
 			return;
+		
+		tsUrl = StringUtils.stripEnd(tsUrl, "/");
+		if(tsUrl.endsWith(URL_SUFFIX)) {
+			teamServerText.setText(tsUrl);
+			return;
+		}
 		
 		char lastChar = tsUrl.charAt(tsUrl.length() - 1);
 		for(int i = URL_SUFFIX.length() - 1; i > -1; i--) {
