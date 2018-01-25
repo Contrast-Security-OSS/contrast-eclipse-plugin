@@ -375,14 +375,12 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 							} else {
 								testConnectionLabel.setText("Connection confirmed!");
 							}
-						} catch (IOException | UnauthorizedException e1) {
-							ContrastUIActivator.log(e1);
-							MessageDialog.openError(getShell(), "Error from server", e1.getMessage());
-							testConnectionLabel.setText("Connection failed!");
+						} catch (IOException e1) {
+							showErrorMessage(e1, getShell(), "Connection error", "Verify your Contrast URL. If error persists, report this to your Contrast admin.");
+						} catch (UnauthorizedException e1) {
+							showErrorMessage(e1, getShell(), "Access denied", "Verify your credentials and make sure you have access to the selected organization.");
 						} catch (Exception e1) {
-							ContrastUIActivator.log(e1);
-							MessageDialog.openError(getShell(), "Exception", "Unknown exception. Check Team Server URL.");
-							testConnectionLabel.setText("Connection failed!");
+							showErrorMessage(e1, getShell(), "Unknown error", "Unknown exception. Please inform an admin about this.");
 						}
 						finally {
 							composite.layout(true, true);
@@ -401,6 +399,25 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		} catch (InvocationTargetException | InterruptedException e1) {
 			ContrastUIActivator.log(e1);
 		}
+	}
+	
+	private void showErrorMessage(final Exception e, final Shell shell, final String title, final String message) {
+		ContrastUIActivator.log(e);
+		testConnectionLabel.setText("Connection failed!");
+		
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(100);
+				}
+				catch(InterruptedException e) {
+					//Do nothing
+				}
+				finally {
+					UIElementUtils.ShowErrorMessageFromAnotherThread(Display.getDefault(), shell, title, message);
+				}
+			}
+		}).start();
 	}
 	
 	//===================== Organization combo listeners ========================

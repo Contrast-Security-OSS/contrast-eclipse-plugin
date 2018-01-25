@@ -14,6 +14,7 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.util;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -24,6 +25,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -190,6 +192,23 @@ public class UIElementUtils {
 		MessageBox box = new MessageBox(shell, SWT.ICON_ERROR);
 		box.setMessage(message);
 		box.open();
+	}
+	
+	/**
+	 * Shows an error message box with the given parameters. This method should be used when trying to show it from other thread than the UI one. 
+	 * @param display Current SWT display.
+	 * @param shell Parent shell.
+	 * @param title Box title.
+	 * @param message The message to be displayed.
+	 */
+	public static void ShowErrorMessageFromAnotherThread(Display display, Shell shell, String title, String message) {
+		display.asyncExec(new Runnable() {
+			
+			@Override
+			public void run() {
+				MessageDialog.openError(shell, title, message);
+			}
+		});
 	}
 
 }
