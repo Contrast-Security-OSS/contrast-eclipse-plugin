@@ -136,98 +136,34 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		createOrganizationButtons(composite);
 		
 		UIElementUtils.createLabel(composite, BLANK);
-		testConnection = new Button(composite, SWT.PUSH);
-		testConnection.setText("Test Connection");
-		gd = new GridData(SWT.CENTER, SWT.FILL, false, false);
-		gd.horizontalSpan = 3;
-		testConnection.setLayoutData(gd);
+		gd = new GridData(SWT.CENTER, SWT.FILL, false, false, 3, 1);
+		testConnection = UIElementUtils.createButton(composite, gd, "Test Connection");
 		testConnection.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				verifyTeamServerUrl();
-				final String url = teamServerText.getText();
-				URL u;
-		        try {
-		            u = new URL(url);
-		        } catch (MalformedURLException e1) {
-		        	MessageDialog.openError(getShell(), "Exception", "Invalid URL.");
-					testConnectionLabel.setText("Connection failed!");
-					return;
-		        }
-		        if (!u.getProtocol().startsWith("http")) {
-		        	MessageDialog.openError(getShell(), "Exception", "Invalid protocol.");
-					testConnectionLabel.setText("Connection failed!");
-					return;
-		        }
-				IRunnableWithProgress op = new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor) {
-						Display.getDefault().syncExec(new Runnable() {
-
-							@Override
-							public void run() {
-								ContrastSDK sdk = new ContrastSDK(usernameText.getText(), serviceKeyText.getText(),
-										apiKeyText.getText(), url);
-								try {
-									Organization organization = Util.getDefaultOrganization(sdk);
-									if (organization == null || organization.getOrgUuid() == null) {
-										testConnectionLabel.setText("Connection is correct, but no default organizations found.");
-									} else {
-										testConnectionLabel.setText("Connection confirmed!");
-									}
-								} catch (IOException | UnauthorizedException e1) {
-									ContrastUIActivator.log(e1);
-									MessageDialog.openError(getShell(), "Error from server", e1.getMessage());
-									testConnectionLabel.setText("Connection failed!");
-								} catch (Exception e1) {
-									ContrastUIActivator.log(e1);
-									MessageDialog.openError(getShell(), "Exception", "Unknown exception. Check Team Server URL.");
-									testConnectionLabel.setText("Connection failed!");
-								}
-								finally {
-									composite.layout(true, true);
-									composite.redraw();
-								}
-							}
-						});
-
-					}
-				};
-				IWorkbench wb = PlatformUI.getWorkbench();
-				IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-				Shell shell = win != null ? win.getShell() : null;
-				try {
-					new ProgressMonitorDialog(shell).run(true, true, op);
-				} catch (InvocationTargetException | InterruptedException e1) {
-					ContrastUIActivator.log(e1);
-				}
-
+				testConnection(composite);
 			}
 
 		});
 		
-		testConnectionLabel = new Label(composite, SWT.NONE);
-		gd = new GridData(SWT.CENTER, SWT.FILL, false, false);
-		gd.horizontalSpan = 3;
-		testConnectionLabel.setLayoutData(gd);
+		gd = new GridData(SWT.CENTER, SWT.FILL, false, false, 3, 1);
+		testConnectionLabel = UIElementUtils.createBasicLabel(composite, gd, "");
 
 		Group defaultOrganizationGroup = new Group(composite, SWT.NONE);
 		defaultOrganizationGroup.setLayout(new GridLayout(2, false));
 		defaultOrganizationGroup.setText("Selected Organization");
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd.horizontalSpan = 3;
+		gd = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
 		defaultOrganizationGroup.setLayoutData(gd);
 
 		UIElementUtils.createLabel(defaultOrganizationGroup, "API Key:");
-		apiKeyText = new Text(defaultOrganizationGroup, SWT.BORDER);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		apiKeyText.setLayoutData(gd);
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		apiKeyText = UIElementUtils.createBasicText(defaultOrganizationGroup, gd, SWT.BORDER);
 		apiKeyText.setEditable(false);
 		
 		UIElementUtils.createLabel(defaultOrganizationGroup, "UUID:");
-		organizationUuidText = new Text(defaultOrganizationGroup, SWT.BORDER);
-		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-		organizationUuidText.setLayoutData(gd);
+		organizationUuidText = UIElementUtils.createBasicText(defaultOrganizationGroup, gd, SWT.BORDER);
 		organizationUuidText.setEditable(false);
 		
 		initPreferences();
@@ -291,8 +227,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	}
 	
 	private void createOrganizationCombo(final Composite parent) {
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-		gd.horizontalSpan = 2;
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1);
 		
 		organizationCombo = new Combo(parent, SWT.READ_ONLY);
 		//Initialize combo with last chosen value
@@ -309,19 +244,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				String orgName = organizationCombo.getText();
-				if(StringUtils.isNotBlank(orgName)) {
-					OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(orgName);
-					apiKeyText.setText(config.getApiKey());
-					organizationUuidText.setText(config.getOrganizationUUIDKey());
-					
-					editOrganizationBtn.setEnabled(true);
-					deleteOrganizationBtn.setEnabled(true);
-				}
-				else {
-					editOrganizationBtn.setEnabled(false);
-					deleteOrganizationBtn.setEnabled(false);
-				}
+				onOrganizationSelected();
 			}
 			
 			@Override
@@ -330,73 +253,44 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	}
 
 	private void createOrganizationButtons(final Composite parent) {
-		GridData gd = new GridData(SWT.RIGHT_TO_LEFT, SWT.FILL, false, false);
-		gd.horizontalSpan = 1;
+		Composite orgComposite = new Composite(parent, SWT.NULL);
+		orgComposite.setLayout(new GridLayout(3, false));
+		orgComposite.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, false, false, 3, 1));
+		GridData gd = new GridData(SWT.RIGHT_TO_LEFT, SWT.FILL, false, false, 1, 1);
 		
-		addOrganizationBtn = new Button(parent, SWT.PUSH);
-		addOrganizationBtn.setText("Add");
-		addOrganizationBtn.setLayoutData(gd);
+		addOrganizationBtn = UIElementUtils.createButton(orgComposite, gd, "Add");
+		editOrganizationBtn = UIElementUtils.createButton(orgComposite, gd, "Edit");
+		deleteOrganizationBtn = UIElementUtils.createButton(orgComposite, gd, "Delete");
+		
 		addOrganizationBtn.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				verifyTeamServerUrl();
-				OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(parent.getShell(), usernameText.getText(),
-						serviceKeyText.getText(), teamServerText.getText());
-				dialog.create();
-				if(dialog.open() == Window.OK) {
-					organizationCombo.setItems(ContrastCoreActivator.getOrganizationList());
-					enableOrganizationViews();
-				}
+				onOrganizationCreated(parent.getShell());
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nothing*/ }
 		});
 		
-		editOrganizationBtn = new Button(parent, SWT.PUSH);
-		editOrganizationBtn.setText("Edit");
-		editOrganizationBtn.setLayoutData(gd);
 		editOrganizationBtn.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				verifyTeamServerUrl();
-				OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(parent.getShell(), usernameText.getText(), 
-						serviceKeyText.getText(), teamServerText.getText(), organizationCombo.getText());
-				dialog.create();
-				if(dialog.open() == Window.OK) {
-					if(!dialog.getIsOrganizationCreated()) {
-						OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(organizationCombo.getText());
-						apiKeyText.setText(config.getApiKey());
-						organizationUuidText.setText(config.getOrganizationUUIDKey());
-					}
-					else {
-						String orgName = organizationCombo.getText();
-						String[] list = ContrastCoreActivator.getOrganizationList();
-						organizationCombo.setItems(list);
-						organizationCombo.select(ArrayUtils.indexOf(list, orgName));
-					}
-				}
+				onOrganizationEdited(parent.getShell());
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nothing */ }
 		});
 		
-		deleteOrganizationBtn = new Button(parent, SWT.PUSH);
-		deleteOrganizationBtn.setText("Delete");
-		deleteOrganizationBtn.setLayoutData(gd);
 		deleteOrganizationBtn.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				ContrastCoreActivator.removeOrganization(organizationCombo.getSelectionIndex());
-				organizationCombo.removeAll();
-				organizationCombo.setItems(ContrastCoreActivator.getOrganizationList());
-				apiKeyText.setText("");
-				organizationUuidText.setText("");
-				enableOrganizationViews();
+				onOrganizationDeleted();
 			}
 			
 			@Override
@@ -448,6 +342,127 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		usernameText.setText(ContrastCoreActivator.getUsername());
 		
 		organizationUuidText.setText(ContrastCoreActivator.getSelectedOrganizationUuid());
+	}
+	
+	//===================== Selection listeners ========================
+	private void testConnection(Composite composite) {
+		final String url = teamServerText.getText();
+		URL u;
+        try {
+            u = new URL(url);
+        } catch (MalformedURLException e1) {
+        	MessageDialog.openError(getShell(), "Exception", "Invalid URL.");
+			testConnectionLabel.setText("Connection failed!");
+			return;
+        }
+        if (!u.getProtocol().startsWith("http")) {
+        	MessageDialog.openError(getShell(), "Exception", "Invalid protocol.");
+			testConnectionLabel.setText("Connection failed!");
+			return;
+        }
+		IRunnableWithProgress op = new IRunnableWithProgress() {
+			public void run(IProgressMonitor monitor) {
+				Display.getDefault().syncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						ContrastSDK sdk = new ContrastSDK(usernameText.getText(), serviceKeyText.getText(),
+								apiKeyText.getText(), url);
+						try {
+							Organization organization = Util.getDefaultOrganization(sdk);
+							if (organization == null || organization.getOrgUuid() == null) {
+								testConnectionLabel.setText("Connection is correct, but no default organizations found.");
+							} else {
+								testConnectionLabel.setText("Connection confirmed!");
+							}
+						} catch (IOException | UnauthorizedException e1) {
+							ContrastUIActivator.log(e1);
+							MessageDialog.openError(getShell(), "Error from server", e1.getMessage());
+							testConnectionLabel.setText("Connection failed!");
+						} catch (Exception e1) {
+							ContrastUIActivator.log(e1);
+							MessageDialog.openError(getShell(), "Exception", "Unknown exception. Check Team Server URL.");
+							testConnectionLabel.setText("Connection failed!");
+						}
+						finally {
+							composite.layout(true, true);
+							composite.redraw();
+						}
+					}
+				});
+
+			}
+		};
+		IWorkbench wb = PlatformUI.getWorkbench();
+		IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+		Shell shell = win != null ? win.getShell() : null;
+		try {
+			new ProgressMonitorDialog(shell).run(true, true, op);
+		} catch (InvocationTargetException | InterruptedException e1) {
+			ContrastUIActivator.log(e1);
+		}
+	}
+	
+	//===================== Organization combo listeners ========================
+	private void onOrganizationSelected() {
+		String orgName = organizationCombo.getText();
+		if(StringUtils.isNotBlank(orgName)) {
+			OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(orgName);
+			apiKeyText.setText(config.getApiKey());
+			organizationUuidText.setText(config.getOrganizationUUIDKey());
+			
+			editOrganizationBtn.setEnabled(true);
+			deleteOrganizationBtn.setEnabled(true);
+		}
+		else {
+			editOrganizationBtn.setEnabled(false);
+			deleteOrganizationBtn.setEnabled(false);
+		}
+	}
+	
+	//===================== Organization Buttons listeners ========================
+	private void onOrganizationCreated(Shell shell) {
+		OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(shell, usernameText.getText(),
+				serviceKeyText.getText(), teamServerText.getText());
+		dialog.create();
+		if(dialog.open() == Window.OK) {
+			int selected = organizationCombo.getSelectionIndex();
+			organizationCombo.setItems(ContrastCoreActivator.getOrganizationList());
+			if(organizationCombo.getItemCount() == 1)
+				organizationCombo.select(0);
+			else if(selected > -1)
+				organizationCombo.select(selected);
+			
+			enableOrganizationViews();
+		}
+	}
+	
+	private void onOrganizationEdited(Shell shell) {
+		OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(shell, usernameText.getText(), 
+				serviceKeyText.getText(), teamServerText.getText(), organizationCombo.getText());
+		dialog.create();
+		if(dialog.open() == Window.OK) {
+			if(!dialog.getIsOrganizationCreated()) {
+				OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(organizationCombo.getText());
+				apiKeyText.setText(config.getApiKey());
+				organizationUuidText.setText(config.getOrganizationUUIDKey());
+			}
+			else {
+				String orgName = organizationCombo.getText();
+				String[] list = ContrastCoreActivator.getOrganizationList();
+				organizationCombo.setItems(list);
+				organizationCombo.select(ArrayUtils.indexOf(list, orgName));
+			}
+		}
+	}
+	
+	private void onOrganizationDeleted() {
+		ContrastCoreActivator.removeOrganization(organizationCombo.getSelectionIndex());
+		organizationCombo.removeAll();
+		organizationCombo.setItems(ContrastCoreActivator.getOrganizationList());
+		apiKeyText.setText("");
+		organizationUuidText.setText("");
+		enableOrganizationViews();
 	}
 
 	@Override
