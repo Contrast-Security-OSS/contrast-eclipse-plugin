@@ -14,6 +14,8 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.core;
 
+import java.util.Map;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.IStatus;
@@ -24,8 +26,11 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.contrastsecurity.ide.eclipse.core.constants.PreferencesConstants;
 import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
+import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
+import com.contrastsecurity.ide.eclipse.core.util.MapUtil;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -111,6 +116,56 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		initPrefs();
 		
 		return prefs.get(Constants.ORGNAME, null);
+	}
+	
+	/*==============  Configuration functions ========================*/
+	public static Map<String, ConnectionConfig> getConfigurations() {
+		initPrefs();
+		
+		String configs = prefs.get(PreferencesConstants.CONNECTION_CONFIGURATION, "");
+		return MapUtil.convertToMap(configs);
+	}
+	
+	public static boolean saveConfigurations(Map<String, ConnectionConfig> configs) {
+		initPrefs();
+		
+		String configString = MapUtil.convertFromMap(configs);
+		prefs.put(PreferencesConstants.CONNECTION_CONFIGURATION, configString);
+		
+		return flushPrefs();
+	}
+	
+	public static boolean setSelectedConfiguration(String selection, ConnectionConfig config) {
+		initPrefs();
+		
+		prefs.put(PreferencesConstants.SELECTED_CONFIGURATION, selection);
+		prefs.put(PreferencesConstants.CURRENT_USERNAME, config.getUsername());
+		prefs.put(PreferencesConstants.CURRENT_URL, config.getTsUrl());
+		prefs.put(PreferencesConstants.CURRENT_SERVICE_KEY, config.getServiceKey());
+		prefs.put(PreferencesConstants.CURRENT_API_KEY, config.getApiKey());
+		prefs.put(PreferencesConstants.CURRENT_ORG_ID, config.getOrgId());
+		
+		return flushPrefs();
+	}
+	
+	public static ConnectionConfig getSelectedConfig() {
+		initPrefs();
+		
+		ConnectionConfig config = new ConnectionConfig();
+		
+		config.setTsUrl(prefs.get(PreferencesConstants.CURRENT_URL, ""));
+		config.setUsername(prefs.get(PreferencesConstants.CURRENT_USERNAME, ""));
+		config.setServiceKey(prefs.get(PreferencesConstants.CURRENT_SERVICE_KEY, ""));
+		config.setApiKey(prefs.get(PreferencesConstants.CURRENT_API_KEY, ""));
+		config.setOrgId(prefs.get(PreferencesConstants.CURRENT_ORG_ID, ""));
+		
+		return config;
+	}
+	
+	public static String getSelectedConfigKey() {
+		initPrefs();
+		
+		return prefs.get(PreferencesConstants.SELECTED_CONFIGURATION, "");
 	}
 	
 	public static boolean saveOrganizationList(String[] list) {
@@ -242,7 +297,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 	}
 
 	public static ExtendedContrastSDK getContrastSDK() {
-		IEclipsePreferences prefs = getPreferences();
+		/*IEclipsePreferences prefs = getPreferences();
 		String username = prefs.get(Constants.USERNAME, null);
 		if (username == null || username.isEmpty()) {
 			return null;
@@ -258,10 +313,27 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		String url = prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
 		if (url == null || url.isEmpty()) {
 			return null;
-		}
-		return getContrastSDK(username, apiKey, serviceKey, url);
+		}*/
+		ConnectionConfig config = getSelectedConfig();
+		if(config.getUsername() == null || config.getUsername().isEmpty())
+			return null;
+		if(config.getServiceKey() == null || config.getServiceKey().isEmpty())
+			return null;
+		if(config.getApiKey() == null || config.getApiKey().isEmpty())
+			return null;
+		if(config.getTsUrl() == null || config.getTsUrl().isEmpty())
+			return null;
+		
+		System.out.println("Username: " + config.getUsername());
+		System.out.println("Service key: " + config.getServiceKey());
+		System.out.println("API key: " + config.getApiKey());
+		System.out.println("TS url: " + config.getTsUrl());
+		return null;
+		//TODO Uncomment to follow with normal flow
+		//return getContrastSDK(config.getUsername(), config.getApiKey(), config.getServiceKey(), config.getTsUrl());
 	}
 	
+	@Deprecated
 	public static ExtendedContrastSDK getContrastSDKByOrganization(final String organizationName) {
 		IEclipsePreferences prefs = getPreferences();
 		String username = prefs.get(Constants.USERNAME, null);
@@ -291,6 +363,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		return getContrastSDK(username, apiKey, serviceKey, url);
 	}
 	
+	@Deprecated
 	public static ExtendedContrastSDK getContrastSDK(final String apiKey) {
 		IEclipsePreferences prefs = getPreferences();
 		String username = prefs.get(Constants.USERNAME, null);
