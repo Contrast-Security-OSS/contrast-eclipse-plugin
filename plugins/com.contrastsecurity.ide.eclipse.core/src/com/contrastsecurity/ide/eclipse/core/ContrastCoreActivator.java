@@ -105,7 +105,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 			prefs = getPreferences();
 	}
 	
-	public static String[] getOrganizationList() {
+	/*public static String[] getOrganizationList() {
 		initPrefs();
 		String orgListString = prefs.get(Constants.ORGANIZATION_LIST, "");
 		
@@ -116,7 +116,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		initPrefs();
 		
 		return prefs.get(Constants.ORGNAME, null);
-	}
+	}*/
 	
 	/*==============  Configuration functions ========================*/
 	public static Map<String, ConnectionConfig> getConfigurations() {
@@ -144,6 +144,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		prefs.put(PreferencesConstants.CURRENT_SERVICE_KEY, config.getServiceKey());
 		prefs.put(PreferencesConstants.CURRENT_API_KEY, config.getApiKey());
 		prefs.put(PreferencesConstants.CURRENT_ORG_ID, config.getOrgId());
+		prefs.put(PreferencesConstants.CURRENT_ORG_NAME, config.getOrgName());
 		
 		return flushPrefs();
 	}
@@ -158,6 +159,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		config.setServiceKey(prefs.get(PreferencesConstants.CURRENT_SERVICE_KEY, ""));
 		config.setApiKey(prefs.get(PreferencesConstants.CURRENT_API_KEY, ""));
 		config.setOrgId(prefs.get(PreferencesConstants.CURRENT_ORG_ID, ""));
+		config.setOrgName(prefs.get(PreferencesConstants.CURRENT_ORG_NAME, ""));
 		
 		return config;
 	}
@@ -168,7 +170,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		return prefs.get(PreferencesConstants.SELECTED_CONFIGURATION, "");
 	}
 	
-	public static boolean saveOrganizationList(String[] list) {
+	/*public static boolean saveOrganizationList(String[] list) {
 		return saveOrganizationList(list, true);
 	}
 	
@@ -219,45 +221,47 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		String[] configArray = Util.getListFromString(config);
 		
 		return new OrganizationConfig(configArray[0], configArray[1]);
-	}
+	}*/
+	
+	/*==============  Preferences functions  ========================*/
 	
 	public static String getTeamServerUrl() {
 		initPrefs();
 		
-		return prefs.get(Constants.TEAM_SERVER_URL, "");
+		return prefs.get(PreferencesConstants.CURRENT_URL, "");
 	}
 	
 	public static String getSelectedApiKey() {
 		initPrefs();
 		
-		return prefs.get(Constants.API_KEY, "");
+		return prefs.get(PreferencesConstants.CURRENT_API_KEY, "");
 	}
 	
 	public static String getServiceKey() {
 		initPrefs();
 		
-		return prefs.get(Constants.SERVICE_KEY, "");
+		return prefs.get(PreferencesConstants.CURRENT_SERVICE_KEY, "");
 	}
 	
 	public static String getUsername() {
 		initPrefs();
 		
-		return prefs.get(Constants.USERNAME, "");
+		return prefs.get(PreferencesConstants.CURRENT_USERNAME, "");
 	}
 	
 	public static String getSelectedOrganization() {
 		initPrefs();
 		
-		return prefs.get(Constants.ORGNAME, "");
+		return prefs.get(PreferencesConstants.CURRENT_ORG_NAME, "");
 	}
 	
 	public static String getSelectedOrganizationUuid() {
 		initPrefs();
 		
-		return prefs.get(Constants.ORGUUID, "");
+		return prefs.get(PreferencesConstants.CURRENT_ORG_ID, "");
 	}
 	
-	public static boolean editOrganization(final String organization, final String apiKey, final String organizationUuid) throws OrganizationNotFoundException {
+	/*public static boolean editOrganization(final String organization, final String apiKey, final String organizationUuid) throws OrganizationNotFoundException {
 		initPrefs();
 		
 		if(prefs.get(organization, null) == null)
@@ -266,9 +270,9 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		prefs.put(organization, apiKey + ";" + organizationUuid);
 		
 		return flushPrefs();
-	}
+	}*/
 	
-	public static boolean saveSelectedPreferences(final String teamServerUrl, final String serviceKey, final String apiKey, 
+	/*public static boolean saveSelectedPreferences(final String teamServerUrl, final String serviceKey, final String apiKey, 
 			final String username, final String orgName, final String orgUuid) {
 		initPrefs();
 		
@@ -280,7 +284,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		prefs.put(Constants.ORGUUID, orgUuid);
 		
 		return flushPrefs();
-	}
+	}*/
 	
 	public static boolean flushPrefs() {
 		if(prefs == null)
@@ -297,23 +301,6 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 	}
 
 	public static ExtendedContrastSDK getContrastSDK() {
-		/*IEclipsePreferences prefs = getPreferences();
-		String username = prefs.get(Constants.USERNAME, null);
-		if (username == null || username.isEmpty()) {
-			return null;
-		}
-		String serviceKey = prefs.get(Constants.SERVICE_KEY, null);
-		if (serviceKey == null || serviceKey.isEmpty()) {
-			return null;
-		}
-		String apiKey = prefs.get(Constants.API_KEY, null);
-		if (apiKey == null || apiKey.isEmpty()) {
-			return null;
-		}
-		String url = prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
-		if (url == null || url.isEmpty()) {
-			return null;
-		}*/
 		ConnectionConfig config = getSelectedConfig();
 		if(config.getUsername() == null || config.getUsername().isEmpty())
 			return null;
@@ -324,15 +311,10 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		if(config.getTsUrl() == null || config.getTsUrl().isEmpty())
 			return null;
 		
-		System.out.println("Username: " + config.getUsername());
-		System.out.println("Service key: " + config.getServiceKey());
-		System.out.println("API key: " + config.getApiKey());
-		System.out.println("TS url: " + config.getTsUrl());
-		return null;
-		//TODO Uncomment to follow with normal flow
-		//return getContrastSDK(config.getUsername(), config.getApiKey(), config.getServiceKey(), config.getTsUrl());
+		return getContrastSDK(config.getUsername(), config.getApiKey(), config.getServiceKey(), config.getTsUrl());
 	}
 	
+	//TODO Remove
 	@Deprecated
 	public static ExtendedContrastSDK getContrastSDKByOrganization(final String organizationName) {
 		IEclipsePreferences prefs = getPreferences();
@@ -344,7 +326,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		if(StringUtils.isBlank(organizationName))
 			return null;
 		
-		OrganizationConfig config = getOrganizationConfiguration(organizationName);
+		OrganizationConfig config = null;//getOrganizationConfiguration(organizationName);
 		if(config == null)
 			return null;
 		
@@ -363,6 +345,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		return getContrastSDK(username, apiKey, serviceKey, url);
 	}
 	
+	//TODO Remove
 	@Deprecated
 	public static ExtendedContrastSDK getContrastSDK(final String apiKey) {
 		IEclipsePreferences prefs = getPreferences();

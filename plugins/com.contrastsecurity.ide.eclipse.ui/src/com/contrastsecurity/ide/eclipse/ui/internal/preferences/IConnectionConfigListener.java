@@ -5,5 +5,6 @@ import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConf
 public interface IConnectionConfigListener {
 	
 	void onConnectionSave(ConnectionConfig config);
+	void onConnectionUpdate(ConnectionConfig config, String previousKey);
 
 }

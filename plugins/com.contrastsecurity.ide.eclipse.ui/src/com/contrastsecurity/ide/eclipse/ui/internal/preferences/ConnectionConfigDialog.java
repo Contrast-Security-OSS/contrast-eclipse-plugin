@@ -27,23 +27,26 @@ import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
+import com.contrastsecurity.ide.eclipse.core.util.MapUtil;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 import com.contrastsecurity.models.Organization;
 import com.contrastsecurity.models.Organizations;
 
 public class ConnectionConfigDialog extends TitleAreaDialog {
 	
-	private final static String NEW_DIALOG_TITLE = "Add new Organization";
-	private final static String NEW_DIALOG_INFO = "In order to add a new organization for this user, its required to add"
-			+ " its API key to retrieve organizations data.";
+	private final static String NEW_DIALOG_TITLE = "Add new connection configuration";
+	private final static String NEW_DIALOG_INFO = "Here you can add a full connection configuration for an specific organization. Be advised that"
+			+ "your Contrast URL, username and service Key will be autofilled with your previous selected configuration (if any). Make sure you select"
+			+ "the right organization for the API key you input, or you might not have access to the organization data.";
 	
-	private final static String EDIT_DIALOG_TITLE = "Edit organization";
-	private final static String EDIT_DIALOG_INFO = "To edit an organization, you require API key to retrieve its data.";
+	private final static String EDIT_DIALOG_TITLE = "Edit connection configuration";
+	private final static String EDIT_DIALOG_INFO = "You may edit any connection parameter for this configuration. If you require to change"
+			+ "the organization id or name, please create a new configuration so this values are retrieve from the API correctly.";
 	
-	private final static String API_KEY_LABEL_TEXT = "API Key: ";
-	private final static String ORGANIZATION_NAME_LABEL_TEXT = "Organization name: ";
-	private final static String ORGANIZATION_ID_LABEL_TEXT = "Organization UUID: ";
-	private final static String RETRIEVE_ORGANIZATIONS_BTN_TEXT = "Retrieve organizations";
+	private final static String TS_URL_TOOLTIP = "This should be the address of your TeamServer from which vulnerability data should be "
+			+ "retrieved.\n If you’re using our SaaS, it’s okay to leave this in its default.";
+	private final static String API_KEY_TOOLTIP = "You can find your organization API key in the Organization Settings, in the API section.";
+	private final static String SERVICE_KEY_TOOLTIP = "You can find your Service Key at the bottom of your Account Profile, under \"Your Keys\".";
 	
 	private final static String URL_SUFFIX = "/Contrast/api";
 	
@@ -55,13 +58,13 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 	private Text usernameText;
 	private Text serviceKeyText;
 	private Text apiKeyText;
-	//private Text orgNameText;
-	private Combo organizationCombo;
+	private Combo orgCombo;
 	private Text orgIdText;
 	
 	private Button getOrgBtn;
 	
 	private final boolean isNewOrganization;
+	private final String previousKey;
 	
 	private final ConnectionConfig config;
 	
@@ -77,6 +80,7 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		config.setUsername(username);
 		config.setServiceKey(serviceKey);
 		this.isNewOrganization = true;
+		previousKey = null;
 		this.listener = listener;
 	}
 	
@@ -85,6 +89,7 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		
 		this.config = config;
 		this.isNewOrganization = false;
+		previousKey = MapUtil.generateConfigurationKey(config);
 		this.listener = listener;
 	}
 	
@@ -116,18 +121,18 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		
 		UIElementUtils.createLabel(container, "Contrast URL: ");
 		tsUrlText = UIElementUtils.createText(container, 2, 1);
-		tsUrlText.setToolTipText("This should be the address of your TeamServer from which vulnerability data should be retrieved.\n If you’re using our SaaS, it’s okay to leave this in its default.");
+		tsUrlText.setToolTipText(TS_URL_TOOLTIP);
 		
 		UIElementUtils.createLabel(container, "Username: ");
 		usernameText = UIElementUtils.createText(container, 2, 1);
 		
 		UIElementUtils.createLabel(container, "Service Key: ");
 		serviceKeyText = UIElementUtils.createText(container, 2, 1);
-		serviceKeyText.setToolTipText("You can find your Service Key at the bottom of your Account Profile, under \"Your Keys\".");
+		serviceKeyText.setToolTipText(SERVICE_KEY_TOOLTIP);
 		
 		UIElementUtils.createLabel(container, "API Key: ");
 		apiKeyText = UIElementUtils.createText(container, 2, 1);
-		apiKeyText.setToolTipText("You can find your organization API key in the Organization Settings, in the API section.");
+		apiKeyText.setToolTipText(API_KEY_TOOLTIP);
 		
 		createOrganizationCombo(container);
 		
@@ -145,7 +150,6 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		
 		if(!isNewOrganization) {
 			apiKeyText.setText(config.getApiKey());
-			//orgNameText.setText(config.getOrgName());
 			orgIdText.setText(config.getOrgId());
 		}
 		
@@ -179,7 +183,7 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 				
 				try {
 					if(retrieveOrganizationName()) {
-						organizationCombo.setEnabled(true);
+						orgCombo.setEnabled(true);
 						tsUrlText.setEnabled(false);
 						usernameText.setEnabled(false);
 						serviceKeyText.setEnabled(false);
@@ -244,26 +248,26 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 	}
 	
 	private void createOrganizationCombo(Composite container) {
-		UIElementUtils.createLabel(container, ORGANIZATION_NAME_LABEL_TEXT);
+		UIElementUtils.createLabel(container, "Organization name: ");
 		
 		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		organizationCombo = new Combo(container, SWT.READ_ONLY);
-		organizationCombo.setLayoutData(gd);
-		organizationCombo.addSelectionListener(new SelectionListener() {
+		orgCombo = new Combo(container, SWT.READ_ONLY);
+		orgCombo.setLayoutData(gd);
+		orgCombo.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				orgIdText.setText(orgList.get(organizationCombo.getSelectionIndex()).getOrgUuid());
+				orgIdText.setText(orgList.get(orgCombo.getSelectionIndex()).getOrgUuid());
 				okButton.setEnabled(true);
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nothing */ }
 		});
-		organizationCombo.setEnabled(false);
+		orgCombo.setEnabled(false);
 		if(!isNewOrganization) {
-			organizationCombo.setItems(new String[]{config.getOrgName()});
-			organizationCombo.select(0);
+			orgCombo.setItems(new String[]{config.getOrgName()});
+			orgCombo.select(0);
 		}
 	}
 	
@@ -278,15 +282,18 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		config.setUsername(usernameText.getText());
 		config.setServiceKey(serviceKeyText.getText());
 		config.setApiKey(apiKeyText.getText());
-		config.setOrgName(organizationCombo.getText());
+		config.setOrgName(orgCombo.getText());
 		config.setOrgId(orgIdText.getText());
 		
-		listener.onConnectionSave(config);
+		if(isNewOrganization)
+			listener.onConnectionSave(config);
+		else
+			listener.onConnectionUpdate(config, previousKey);
 	}
 	
 	private void clearOrganizationsCombo() {
-		organizationCombo.removeAll();
-		organizationCombo.setEnabled(false);
+		orgCombo.removeAll();
+		orgCombo.setEnabled(false);
 	}
 	
 	public boolean getIsOrganizationCreated() {
@@ -300,11 +307,7 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		if(organizations.getOrganizations() != null && !organizations.getOrganizations().isEmpty()) {
 			orgList = organizations.getOrganizations();
 			String[] orgArray = Util.extractOrganizationNames(orgList);
-			organizationCombo.setItems(orgArray);
-			
-			/*int position = ArrayUtils.indexOf(orgArray, organizationName);
-			if(position != ArrayUtils.INDEX_NOT_FOUND)
-				organizationCombo.select(position);*/
+			orgCombo.setItems(orgArray);
 			
 			return true;
 		}

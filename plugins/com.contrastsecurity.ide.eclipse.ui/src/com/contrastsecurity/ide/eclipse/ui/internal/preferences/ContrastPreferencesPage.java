@@ -16,48 +16,35 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.preference.PreferenceLabelProvider;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -68,7 +55,6 @@ import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
-import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
 import com.contrastsecurity.ide.eclipse.core.util.MapUtil;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.PreferencesLabelProvider;
@@ -85,6 +71,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	private Label testConnectionLabel;
 	
 	private TableViewer table;
+	private CheckboxTableViewer checkTable;
 	private Map<String, ConnectionConfig> configs;
 	private String selectedConfigId;
 	
@@ -162,7 +149,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		configs = ContrastCoreActivator.getConfigurations();
 		table.setInput(configs.values());
 		
-		CheckboxTableViewer checkTable = new CheckboxTableViewer(table.getTable());
+		checkTable = new CheckboxTableViewer(table.getTable());
 		checkTable.addCheckStateListener(new ICheckStateListener() {
 			
 			@Override
@@ -186,16 +173,13 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			@Override
 			public void onConnectionSave(ConnectionConfig config) {
 				String key = MapUtil.generateConfigurationKey(config);
-				configs.put(key, config);
-				if(configDialog != null)
-					configDialog.close();
-				
-				table.setInput(configs.values());
-				
-				if(table.getTable().getItemCount() == 1) {
-					table.setSelection(new StructuredSelection(configs.get(key)), true);
-					checkTable.setChecked(configs.get(key), true);
-				}
+				saveConnectionConfig(config, key);
+			}
+			
+			@Override
+			public void onConnectionUpdate(ConnectionConfig config, String previousKey) {
+				String key = MapUtil.generateConfigurationKey(config);
+				updateConnectionConfig(config, key, previousKey);
 			}
 		};
 		
@@ -228,6 +212,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				onDeleteConfigPressed();
+				enableTestConnection();
 			}
 			
 			@Override
@@ -259,9 +244,10 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		//TODO Refactor
 		/*testConnection.setEnabled(!usernameText.getText().isEmpty() && !teamServerText.getText().isEmpty()
 				&& !apiKeyText.getText().isEmpty() && !serviceKeyText.getText().isEmpty());*/
+		testConnection.setEnabled(!configs.isEmpty());
 	}
 	
-	//===================== Selection listeners ========================
+	//===================== Selection listener functions ========================
 	private void testConnection(Composite composite) {
 		ConnectionConfig config = configs.get(selectedConfigId);
 		
@@ -322,7 +308,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		}
 	}
 	
-	//===================== Configuration buttons listeners ========================
+	//===================== Configuration buttons listener functions ========================
 	private void onAddConfigPressed(final IConnectionConfigListener listener) {
 		String lastUsername = "";
 		String lastServiceKey = "";
@@ -354,11 +340,45 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		
 		if(selection instanceof IStructuredSelection && ((IStructuredSelection) selection).getFirstElement() instanceof ConnectionConfig) {
 			ConnectionConfig config = (ConnectionConfig) ((IStructuredSelection) selection).getFirstElement();
+			String configKey = MapUtil.generateConfigurationKey(config);
 			table.remove(config);
-			configs.remove(MapUtil.generateConfigurationKey(config));
+			configs.remove(configKey);
+			
+			if(configs.size() > 0 && selectedConfigId.equals(configKey)) {
+				ConnectionConfig firstConfig = (ConnectionConfig) table.getElementAt(0);
+				checkTable.setChecked(firstConfig, true);
+				selectedConfigId = MapUtil.generateConfigurationKey(firstConfig);
+			}
 		}
 	}
-	//===================== Organization Buttons listeners ========================
+	//===================== Configuration changes listener functions ========================
+	private void saveConnectionConfig(ConnectionConfig config, String key) {
+		configs.put(key, config);
+		if(configDialog != null)
+			configDialog.close();
+		
+		table.setInput(configs.values());
+		
+		if(table.getTable().getItemCount() == 1) {
+			table.setSelection(new StructuredSelection(configs.get(key)), true);
+			checkTable.setChecked(configs.get(key), true);
+		}
+		enableTestConnection();
+	}
+	
+	private void updateConnectionConfig(ConnectionConfig config, String newKey, String previousKey) {
+		saveConnectionConfig(config, newKey);
+		
+		if(newKey.equals(previousKey))
+			return;
+		
+		configs.remove(previousKey);
+		
+		if(selectedConfigId.equals(previousKey)) {
+			checkTable.setChecked(config, true);
+			selectedConfigId = newKey;
+		}
+	}
 
 	@Override
 	public void init(IWorkbench workbench) {
