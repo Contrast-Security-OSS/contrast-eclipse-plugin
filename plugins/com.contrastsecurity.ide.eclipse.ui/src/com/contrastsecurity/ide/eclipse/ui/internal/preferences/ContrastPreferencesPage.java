@@ -51,11 +51,12 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
-import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
-import com.contrastsecurity.ide.eclipse.core.Util;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.SettingsConstants;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
-import com.contrastsecurity.ide.eclipse.core.util.MapUtil;
+import com.contrastsecurity.ide.eclipse.core.util.ConnectionConfigUtil;
+import com.contrastsecurity.ide.eclipse.core.util.Util;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.PreferencesLabelProvider;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
@@ -92,7 +93,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	@Override
 	protected void performDefaults() {
 		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
-		prefs.put(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
+		prefs.put(SettingsConstants.CURRENT_URL, Constants.TEAM_SERVER_URL_VALUE);
 		super.performDefaults();
 	}
 
@@ -157,7 +158,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 				checkTable.setAllChecked(false);
 				checkTable.setChecked(event.getElement(), true);
 				ConnectionConfig config = (ConnectionConfig) event.getElement();
-				selectedConfigId = MapUtil.generateConfigurationKey(config);
+				selectedConfigId = ConnectionConfigUtil.generateConfigurationKey(config);
 			}
 		});
 		
@@ -172,13 +173,13 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			
 			@Override
 			public void onConnectionSave(ConnectionConfig config) {
-				String key = MapUtil.generateConfigurationKey(config);
+				String key = ConnectionConfigUtil.generateConfigurationKey(config);
 				saveConnectionConfig(config, key);
 			}
 			
 			@Override
 			public void onConnectionUpdate(ConnectionConfig config, String previousKey) {
-				String key = MapUtil.generateConfigurationKey(config);
+				String key = ConnectionConfigUtil.generateConfigurationKey(config);
 				updateConnectionConfig(config, key, previousKey);
 			}
 		};
@@ -340,14 +341,14 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		
 		if(selection instanceof IStructuredSelection && ((IStructuredSelection) selection).getFirstElement() instanceof ConnectionConfig) {
 			ConnectionConfig config = (ConnectionConfig) ((IStructuredSelection) selection).getFirstElement();
-			String configKey = MapUtil.generateConfigurationKey(config);
+			String configKey = ConnectionConfigUtil.generateConfigurationKey(config);
 			table.remove(config);
 			configs.remove(configKey);
 			
 			if(configs.size() > 0 && selectedConfigId.equals(configKey)) {
 				ConnectionConfig firstConfig = (ConnectionConfig) table.getElementAt(0);
 				checkTable.setChecked(firstConfig, true);
-				selectedConfigId = MapUtil.generateConfigurationKey(firstConfig);
+				selectedConfigId = ConnectionConfigUtil.generateConfigurationKey(firstConfig);
 			}
 		}
 	}

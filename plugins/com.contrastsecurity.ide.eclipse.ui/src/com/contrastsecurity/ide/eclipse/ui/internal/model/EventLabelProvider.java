@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.unbescape.html.HtmlEscape;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.EventItem;
 import com.contrastsecurity.ide.eclipse.core.extended.EventResource;
 

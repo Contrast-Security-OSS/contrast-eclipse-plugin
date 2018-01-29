@@ -17,8 +17,8 @@ import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.http.FilterForm;
 import com.contrastsecurity.http.ServerFilterForm;
 import com.contrastsecurity.http.TraceFilterForm;
-import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
+import com.contrastsecurity.ide.eclipse.core.constants.SettingsConstants;
 import com.contrastsecurity.ide.eclipse.core.extended.EventDetails;
 import com.contrastsecurity.ide.eclipse.core.extended.EventResource;
 import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
@@ -79,10 +79,10 @@ public class SdkTest {
 	@Before
 	public void init() {
 		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
-		prefs.put(Constants.USERNAME, USERNAME);
-		prefs.put(Constants.API_KEY, API_KEY);
-		prefs.put(Constants.SERVICE_KEY, SERVICE_KEY);
-		prefs.put(Constants.TEAM_SERVER_URL, REST_API_URL);
+		prefs.put(SettingsConstants.CURRENT_USERNAME, USERNAME);
+		prefs.put(SettingsConstants.CURRENT_API_KEY, API_KEY);
+		prefs.put(SettingsConstants.CURRENT_SERVICE_KEY, SERVICE_KEY);
+		prefs.put(SettingsConstants.CURRENT_URL, REST_API_URL);
 		sdk = ContrastCoreActivator.getContrastSDK();
 	}
 

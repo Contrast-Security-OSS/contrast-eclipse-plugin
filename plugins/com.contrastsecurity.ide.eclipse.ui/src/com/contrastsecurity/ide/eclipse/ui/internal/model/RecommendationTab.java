@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.CustomRecommendation;
 import com.contrastsecurity.ide.eclipse.core.extended.CustomRuleReferences;
 import com.contrastsecurity.ide.eclipse.core.extended.RecommendationResource;

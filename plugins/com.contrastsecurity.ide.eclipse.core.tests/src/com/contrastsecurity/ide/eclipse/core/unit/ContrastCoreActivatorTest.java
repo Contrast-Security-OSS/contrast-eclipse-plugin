@@ -7,7 +7,7 @@ import org.osgi.service.prefs.BackingStoreException;
 
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
-import com.contrastsecurity.ide.eclipse.core.util.MapUtil;
+import com.contrastsecurity.ide.eclipse.core.util.ConnectionConfigUtil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -35,7 +35,7 @@ public class ContrastCoreActivatorTest {
 	private static ConnectionConfig config2;
 	
 	private String addConfig(Map<String, ConnectionConfig> configs, ConnectionConfig config) {
-		String key = MapUtil.generateConfigurationKey(config);
+		String key = ConnectionConfigUtil.generateConfigurationKey(config);
 		configs.put(key, config);
 		return key;
 	}
@@ -116,8 +116,8 @@ public class ContrastCoreActivatorTest {
 	
 	@Test
 	public void selectAConfigurationTest() {
-		String key1 = MapUtil.generateConfigurationKey(config1);
-		String key2 = MapUtil.generateConfigurationKey(config2);
+		String key1 = ConnectionConfigUtil.generateConfigurationKey(config1);
+		String key2 = ConnectionConfigUtil.generateConfigurationKey(config2);
 		
 		ContrastCoreActivator.saveConfigurations(configs);
 		ContrastCoreActivator.setSelectedConfiguration(key2, config2);

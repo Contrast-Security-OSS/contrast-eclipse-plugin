@@ -19,8 +19,9 @@ import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.SettingsConstants;
 
 public class ContrastPreferencesInitializer extends
 		AbstractPreferenceInitializer {
@@ -31,7 +32,7 @@ public class ContrastPreferencesInitializer extends
 	@Override
 	public void initializeDefaultPreferences() {
 		IEclipsePreferences preferences = DefaultScope.INSTANCE.getNode(ContrastCoreActivator.PLUGIN_ID);
-		preferences.put(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
+		preferences.put(SettingsConstants.CURRENT_URL, Constants.TEAM_SERVER_URL_VALUE);
 	}
 
 }

@@ -1,6 +1,6 @@
 package com.contrastsecurity.ide.eclipse.core.constants;
 
-public class PreferencesConstants {
+public class SettingsConstants {
 	
 	public final static String CONNECTION_CONFIGURATION = "connection.configurations";
 	public final static String SELECTED_CONFIGURATION = "selected.config";

@@ -66,15 +66,16 @@ import org.eclipse.ui.part.ViewPart;
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.http.RuleSeverity;
 import com.contrastsecurity.http.TraceFilterForm;
-import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
-import com.contrastsecurity.ide.eclipse.core.Util;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.SettingsConstants;
 import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
 import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
 import com.contrastsecurity.ide.eclipse.core.extended.RecommendationResource;
 import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
 import com.contrastsecurity.ide.eclipse.core.extended.TagsResource;
+import com.contrastsecurity.ide.eclipse.core.util.Util;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.cache.ContrastCache;
 import com.contrastsecurity.ide.eclipse.ui.cache.Key;
@@ -869,7 +870,7 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	public URL getOverviewUrl(String traceId) throws MalformedURLException {
-		String teamServerUrl = ContrastCoreActivator.getPreferences().get(Constants.TEAM_SERVER_URL,
+		String teamServerUrl = ContrastCoreActivator.getPreferences().get(SettingsConstants.CURRENT_URL,
 				Constants.TEAM_SERVER_URL_VALUE);
 		teamServerUrl = teamServerUrl.trim();
 		if (teamServerUrl != null && teamServerUrl.endsWith("/api")) {

@@ -72,7 +72,7 @@ public class ConnectionConfig {
 	
 	@Override
 	public boolean equals(Object object) {
-		if(object == null && !(object instanceof ConnectionConfig))
+		if(object == null || !(object instanceof ConnectionConfig))
 			return false;
 		
 		ConnectionConfig config = (ConnectionConfig) object;

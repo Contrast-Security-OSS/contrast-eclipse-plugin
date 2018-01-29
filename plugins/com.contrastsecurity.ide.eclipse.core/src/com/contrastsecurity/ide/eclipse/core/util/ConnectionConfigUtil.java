@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
 
-public class MapUtil {
+public class ConnectionConfigUtil {
 	
 	private final static String ELEMENT_DELIMITER = "|@|@|";
 	private final static String PROPERTY_DELIMITER = "|&|&|";

@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.TraceStatusRequest;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.StatusConstants;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;

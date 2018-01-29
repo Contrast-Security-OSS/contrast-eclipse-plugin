@@ -24,10 +24,10 @@ import org.eclipse.swt.widgets.Text;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
-import com.contrastsecurity.ide.eclipse.core.Util;
 import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
-import com.contrastsecurity.ide.eclipse.core.util.MapUtil;
+import com.contrastsecurity.ide.eclipse.core.util.ConnectionConfigUtil;
+import com.contrastsecurity.ide.eclipse.core.util.Util;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 import com.contrastsecurity.models.Organization;
 import com.contrastsecurity.models.Organizations;
@@ -89,7 +89,7 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		
 		this.config = config;
 		this.isNewOrganization = false;
-		previousKey = MapUtil.generateConfigurationKey(config);
+		previousKey = ConnectionConfigUtil.generateConfigurationKey(config);
 		this.listener = listener;
 	}
 	
