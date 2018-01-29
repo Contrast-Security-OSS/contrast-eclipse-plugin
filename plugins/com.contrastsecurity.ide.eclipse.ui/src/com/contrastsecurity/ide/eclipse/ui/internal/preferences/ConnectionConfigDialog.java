@@ -35,13 +35,13 @@ import com.contrastsecurity.models.Organizations;
 public class ConnectionConfigDialog extends TitleAreaDialog {
 	
 	private final static String NEW_DIALOG_TITLE = "Add new connection configuration";
-	private final static String NEW_DIALOG_INFO = "Here you can add a full connection configuration for an specific organization. Be advised that"
-			+ "your Contrast URL, username and service Key will be autofilled with your previous selected configuration (if any). Make sure you select"
-			+ "the right organization for the API key you input, or you might not have access to the organization data.";
+	private final static String NEW_DIALOG_INFO = "Here you can add a full connection configuration for an specific organization. Be advised that your Contrast URL,\n"
+			+ "username and service Key will be autofilled with your previous selected configuration (if any). Make sure you\n"
+			+ "select the right organization for the API key you input, or you might not have access to the organization data.";
 	
 	private final static String EDIT_DIALOG_TITLE = "Edit connection configuration";
-	private final static String EDIT_DIALOG_INFO = "You may edit any connection parameter for this configuration. If you require to change"
-			+ "the organization id or name, please create a new configuration so this values are retrieve from the API correctly.";
+	private final static String EDIT_DIALOG_INFO = "You may edit any connection parameter for this configuration. If you require to change the organization id or name,\n"
+			+ "please create a new configuration so this values are retrieve from the API correctly.";
 	
 	private final static String TS_URL_TOOLTIP = "This should be the address of your TeamServer from which vulnerability data should be "
 			+ "retrieved.\n If you’re using our SaaS, it’s okay to leave this in its default.";
@@ -96,19 +96,8 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 	@Override
 	public void create() {
 		super.create();
-		
 		okButton = getButton(IDialogConstants.OK_ID);
-		
-		if(isNewOrganization) {
-			setTitle(NEW_DIALOG_TITLE);
-			setMessage(NEW_DIALOG_INFO, IMessageProvider.INFORMATION);
-			okButton.setEnabled(false);
-		}
-		else {
-			setTitle(EDIT_DIALOG_TITLE);
-			setMessage(EDIT_DIALOG_INFO, IMessageProvider.INFORMATION);
-			okButton.setEnabled(true);
-		}
+		okButton.setEnabled(!isNewOrganization);
 	}
 	
 	@Override
@@ -154,6 +143,15 @@ public class ConnectionConfigDialog extends TitleAreaDialog {
 		}
 		
 		setupListeners();
+		
+		if(isNewOrganization) {
+			setTitle(NEW_DIALOG_TITLE);
+			setMessage(NEW_DIALOG_INFO, IMessageProvider.INFORMATION);
+		}
+		else {
+			setTitle(EDIT_DIALOG_TITLE);
+			setMessage(EDIT_DIALOG_INFO, IMessageProvider.INFORMATION);
+		}
 		
 		return area;
 	}
