@@ -1,98 +1,134 @@
 package com.contrastsecurity.ide.eclipse.core.unit;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
-import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
+import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
+import com.contrastsecurity.ide.eclipse.core.util.ConnectionConfigUtil;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;; 
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry; 
 
 public class ContrastCoreActivatorTest {
 	
-	private final static String[] ORGANIZATION_ARRAY = {"org1", "org2", "org3"};
-	
-	private final static String EXTRA_ORGANIZATION = "extra org";
-	private final static String API_KEY = "myDummyApiKey12421D";
-	private final static String ORGANIZATION_UUID = "notReallyAServ1c3K3y234D";
-	private final static String[] ALTERED_ORGANIZATION_ARRAY = {"org1", "org2", "org3", "extra org"};
-	
-	private final static String ORGANIZATION_TO_DELETE = "org2";
-	private final static String[] SMALLER_ORGANIZATION_ARRAY = {"org1", "org3"};
+	private final static String API_KEY_ONE = "myDummyApiKey98745";
+	private final static String ORG_NAME_ONE = "org1";
+	private final static String ORG_ID_ONE = "orgIdOne";
+	private final static String API_KEY_TWO = "myDummyApiKey12345";
+	private final static String ORG_NAME_TWO = "org2";
+	private final static String ORG_ID_TWO = "orgIdTwo";
 	
 	private final static String SERVICE_KEY = "thisIsAServiceKey";
 	private final static String USERNAME = "someUser";
 	private final static String TEAM_SERVER_URL = "http://somewhere.com/api";
 	
-	@Test
-	public void saveAndGetOrganizationsAsListTest() {
-		assertTrue(ContrastCoreActivator.saveOrganizationList(ORGANIZATION_ARRAY));
-		String[] list = ContrastCoreActivator.getOrganizationList();
-		assertArrayEquals(ORGANIZATION_ARRAY, list);
+	private Map<String, ConnectionConfig> configs;
+	private Map<String, ConnectionConfig> savedConfigs;
+	private static ConnectionConfig config1;
+	private static ConnectionConfig config2;
+	
+	private String addConfig(Map<String, ConnectionConfig> configs, ConnectionConfig config) {
+		String key = ConnectionConfigUtil.generateConfigurationKey(config);
+		configs.put(key, config);
+		return key;
+	}
+	
+	@BeforeClass
+	public static void initConfigs() {
+		config1 = new ConnectionConfig(TEAM_SERVER_URL, USERNAME, SERVICE_KEY, API_KEY_ONE, ORG_NAME_ONE, ORG_ID_ONE);
+		config2 = new ConnectionConfig(TEAM_SERVER_URL, USERNAME, SERVICE_KEY, API_KEY_TWO, ORG_NAME_TWO, ORG_ID_TWO);
+	}
+	
+	@Before
+	public void initTest() {
+		configs = new HashMap<>();
+		savedConfigs = null;
 	}
 	
 	@Test
-	public void addOrganizationTest() {
-		assertTrue(ContrastCoreActivator.saveOrganizationList(ORGANIZATION_ARRAY));
-		String[] orgArray = ContrastCoreActivator.getOrganizationList();
+	public void saveAndGetConfigurationsTest() {
+		String key1 = addConfig(configs, config1);
+		String key2 = addConfig(configs, config2);
 		
-		orgArray = (String[]) ArrayUtils.add(orgArray, EXTRA_ORGANIZATION);
-		assertTrue(ContrastCoreActivator.saveOrganizationList(orgArray));
+		ContrastCoreActivator.saveConfigurations(configs);
+		savedConfigs = ContrastCoreActivator.getConfigurations();
 		
-		String[] newList = ContrastCoreActivator.getOrganizationList();
-		assertArrayEquals(ALTERED_ORGANIZATION_ARRAY, newList);
+		assertEquals(API_KEY_ONE, savedConfigs.get(key1).getApiKey());
+		assertEquals(ORG_ID_ONE, savedConfigs.get(key1).getOrgId());
+		
+		assertEquals(API_KEY_TWO, savedConfigs.get(key2).getApiKey());
+		assertEquals(ORG_ID_TWO, savedConfigs.get(key2).getOrgId());
+		
+		for(Entry<String, ConnectionConfig> entry : savedConfigs.entrySet()) {
+			assertEquals(SERVICE_KEY, entry.getValue().getServiceKey());
+			assertEquals(USERNAME, entry.getValue().getUsername());
+		}
 	}
 	
 	@Test
-	public void addOrganizationConfigTest() {
-		assertTrue(ContrastCoreActivator.saveOrganizationList(ORGANIZATION_ARRAY));
-		assertTrue(ContrastCoreActivator.saveNewOrganization(EXTRA_ORGANIZATION, API_KEY, ORGANIZATION_UUID));
+	public void UpdateConfigurationTest() {
+		final String key = addConfig(configs, config1);
+		ContrastCoreActivator.saveConfigurations(configs);
+		savedConfigs = ContrastCoreActivator.getConfigurations();
 		
-		String[] newList = ContrastCoreActivator.getOrganizationList();
-		assertArrayEquals(ALTERED_ORGANIZATION_ARRAY, newList);
+		assertEquals(API_KEY_ONE, savedConfigs.get(key).getApiKey());
+		assertEquals(USERNAME, savedConfigs.get(key).getUsername());
 		
-		OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(EXTRA_ORGANIZATION);
-		assertEquals(config.getApiKey(), API_KEY);
-		assertEquals(config.getOrganizationUUIDKey(), ORGANIZATION_UUID);
+		final String newApiKey = "newApiKey";
+		final String newUsername = "newUser";
+		savedConfigs = ContrastCoreActivator.getConfigurations();
+		ConnectionConfig config = savedConfigs.get(key);
+		config.setApiKey(newApiKey);
+		config.setUsername(newUsername);
+		
+		ContrastCoreActivator.saveConfigurations(savedConfigs);
+		savedConfigs = ContrastCoreActivator.getConfigurations();
+		
+		assertEquals(newApiKey, savedConfigs.get(key).getApiKey());
+		assertEquals(newUsername, savedConfigs.get(key).getUsername());
 	}
 	
 	@Test
-	public void removeOrganizationTest() throws BackingStoreException {
-		assertTrue(ContrastCoreActivator.saveOrganizationList(ORGANIZATION_ARRAY));
-		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
-		prefs.put(ORGANIZATION_TO_DELETE, API_KEY + ";" + ORGANIZATION_UUID);
-		prefs.flush();
+	public void removeConfigurationTest() throws BackingStoreException {
+		String key1 = addConfig(configs, config1);
+		String key2 = addConfig(configs, config2);
 		
-		ContrastCoreActivator.removeOrganization(1);
-		String[] newList = ContrastCoreActivator.getOrganizationList();
-		assertArrayEquals(SMALLER_ORGANIZATION_ARRAY, newList);
+		ContrastCoreActivator.saveConfigurations(configs);
+		savedConfigs = ContrastCoreActivator.getConfigurations();
 		
-		assertNull(ContrastCoreActivator.getOrganizationConfiguration(ORGANIZATION_TO_DELETE));
+		assertEquals(2, savedConfigs.size());
+		
+		savedConfigs.remove(key1);
+		ContrastCoreActivator.saveConfigurations(savedConfigs);
+		savedConfigs = ContrastCoreActivator.getConfigurations();
+		
+		assertEquals(1, savedConfigs.size());
+		assertTrue(savedConfigs.containsKey(key2));
+		assertTrue(!savedConfigs.containsKey(key1));
 	}
 	
 	@Test
-	public void clearOrganizationListTest() {
-		assertTrue(ContrastCoreActivator.saveOrganizationList(new String[0]));
-		assertTrue(ContrastCoreActivator.saveNewOrganization(EXTRA_ORGANIZATION, API_KEY, ORGANIZATION_UUID));
-		ContrastCoreActivator.removeOrganization(0);
-		assertEquals(0, ContrastCoreActivator.getOrganizationList().length);
-	}
-	
-	@Test
-	public void saveAndRetrieveSelectedPrefs() {
-		assertTrue(ContrastCoreActivator.saveSelectedPreferences(TEAM_SERVER_URL, SERVICE_KEY, API_KEY, USERNAME, EXTRA_ORGANIZATION, ORGANIZATION_UUID));
+	public void selectAConfigurationTest() {
+		String key1 = ConnectionConfigUtil.generateConfigurationKey(config1);
+		String key2 = ConnectionConfigUtil.generateConfigurationKey(config2);
 		
-		assertEquals(TEAM_SERVER_URL, ContrastCoreActivator.getTeamServerUrl());
-		assertEquals(API_KEY, ContrastCoreActivator.getSelectedApiKey());
-		assertEquals(SERVICE_KEY, ContrastCoreActivator.getServiceKey());
-		assertEquals(USERNAME, ContrastCoreActivator.getUsername());
-		assertEquals(EXTRA_ORGANIZATION, ContrastCoreActivator.getSelectedOrganization());
-		assertEquals(ORGANIZATION_UUID, ContrastCoreActivator.getSelectedOrganizationUuid());
+		ContrastCoreActivator.saveConfigurations(configs);
+		ContrastCoreActivator.setSelectedConfiguration(key2, config2);
+		
+		assertEquals(key2, ContrastCoreActivator.getSelectedConfigKey());
+		assertEquals(config2, ContrastCoreActivator.getSelectedConfig());
+		
+		ContrastCoreActivator.setSelectedConfiguration(key1, config1);
+		
+		assertEquals(key1, ContrastCoreActivator.getSelectedConfigKey());
+		assertEquals(config1, ContrastCoreActivator.getSelectedConfig());;
 	}
 
 }

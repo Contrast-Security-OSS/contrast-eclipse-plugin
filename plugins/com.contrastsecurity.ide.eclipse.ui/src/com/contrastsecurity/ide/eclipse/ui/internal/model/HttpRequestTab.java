@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.unbescape.html.HtmlEscape;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 

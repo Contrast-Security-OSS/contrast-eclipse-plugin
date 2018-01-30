@@ -14,8 +14,8 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.core;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import java.util.Map;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -24,8 +24,10 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.contrastsecurity.ide.eclipse.core.constants.SettingsConstants;
 import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
-import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
+import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
+import com.contrastsecurity.ide.eclipse.core.util.ConnectionConfigUtil;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -100,131 +102,108 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 			prefs = getPreferences();
 	}
 	
-	public static String[] getOrganizationList() {
-		initPrefs();
-		String orgListString = prefs.get(Constants.ORGANIZATION_LIST, "");
-		
-		return Util.getListFromString(orgListString);
-	}
-	
-	public static String getDefaultOrganization() {
+	/*==============  Configuration functions ========================*/
+	public static Map<String, ConnectionConfig> getConfigurations() {
 		initPrefs();
 		
-		return prefs.get(Constants.ORGNAME, null);
+		String configs = prefs.get(SettingsConstants.CONNECTION_CONFIGURATION, "");
+		return ConnectionConfigUtil.convertToMap(configs);
 	}
 	
-	public static boolean saveOrganizationList(String[] list) {
-		return saveOrganizationList(list, true);
-	}
-	
-	public static boolean saveOrganizationList(String[] list, boolean shouldFlush) {
+	public static boolean saveConfigurations(Map<String, ConnectionConfig> configs) {
 		initPrefs();
 		
-		String stringList = Util.getStringFromList(list);
-		
-		prefs.put(Constants.ORGANIZATION_LIST, stringList);
-		
-		if(shouldFlush)
-			return flushPrefs();
-		
-		return true;
-	}
-	
-	public static void removeOrganization(final int position) {
-		String[] orgArray = getOrganizationList();
-		String organization = orgArray[position];
-		orgArray = (String[]) ArrayUtils.remove(orgArray, position);
-		saveOrganizationList(orgArray, false);
-		
-		prefs.remove(organization);
-		
-		flushPrefs();
-	}
-	
-	public static boolean saveNewOrganization(final String organization, final String apiKey, final String organizationUuid) {
-		initPrefs();
-		
-		String[] list = getOrganizationList();
-		list = (String[]) ArrayUtils.add(list, organization);
-		saveOrganizationList(list, false);
-		
-		prefs.put(organization, apiKey + ";" + organizationUuid);
+		String configString = ConnectionConfigUtil.convertFromMap(configs);
+		prefs.put(SettingsConstants.CONNECTION_CONFIGURATION, configString);
 		
 		return flushPrefs();
 	}
 	
-	public static OrganizationConfig getOrganizationConfiguration(final String organization) {
+	public static boolean setSelectedConfiguration(String selection, ConnectionConfig config) {
 		initPrefs();
 		
-		String config = prefs.get(organization, "");
+		prefs.put(SettingsConstants.SELECTED_CONFIGURATION, selection);
+		prefs.put(SettingsConstants.CURRENT_USERNAME, config.getUsername());
+		prefs.put(SettingsConstants.CURRENT_URL, config.getTsUrl());
+		prefs.put(SettingsConstants.CURRENT_SERVICE_KEY, config.getServiceKey());
+		prefs.put(SettingsConstants.CURRENT_API_KEY, config.getApiKey());
+		prefs.put(SettingsConstants.CURRENT_ORG_ID, config.getOrgId());
+		prefs.put(SettingsConstants.CURRENT_ORG_NAME, config.getOrgName());
 		
-		if(StringUtils.isBlank(config))
-			return null;
-		
-		String[] configArray = Util.getListFromString(config);
-		
-		return new OrganizationConfig(configArray[0], configArray[1]);
+		return flushPrefs();
 	}
+	
+	public static ConnectionConfig getSelectedConfig() {
+		initPrefs();
+		
+		ConnectionConfig config = new ConnectionConfig();
+		
+		config.setTsUrl(prefs.get(SettingsConstants.CURRENT_URL, ""));
+		config.setUsername(prefs.get(SettingsConstants.CURRENT_USERNAME, ""));
+		config.setServiceKey(prefs.get(SettingsConstants.CURRENT_SERVICE_KEY, ""));
+		config.setApiKey(prefs.get(SettingsConstants.CURRENT_API_KEY, ""));
+		config.setOrgId(prefs.get(SettingsConstants.CURRENT_ORG_ID, ""));
+		config.setOrgName(prefs.get(SettingsConstants.CURRENT_ORG_NAME, ""));
+		
+		return config;
+	}
+	
+	public static String getSelectedConfigKey() {
+		initPrefs();
+		
+		return prefs.get(SettingsConstants.SELECTED_CONFIGURATION, "");
+	}
+	
+	public static boolean clearSelectedConfig() {
+		initPrefs();
+		
+		prefs.remove(SettingsConstants.SELECTED_CONFIGURATION);
+		prefs.remove(SettingsConstants.CURRENT_USERNAME);
+		prefs.remove(SettingsConstants.CURRENT_URL);
+		prefs.remove(SettingsConstants.CURRENT_SERVICE_KEY);
+		prefs.remove(SettingsConstants.CURRENT_API_KEY);
+		prefs.remove(SettingsConstants.CURRENT_ORG_ID);
+		prefs.remove(SettingsConstants.CURRENT_ORG_NAME);
+		
+		return flushPrefs();
+	}
+	
+	/*==============  Preferences functions  ========================*/
 	
 	public static String getTeamServerUrl() {
 		initPrefs();
 		
-		return prefs.get(Constants.TEAM_SERVER_URL, "");
+		return prefs.get(SettingsConstants.CURRENT_URL, "");
 	}
 	
 	public static String getSelectedApiKey() {
 		initPrefs();
 		
-		return prefs.get(Constants.API_KEY, "");
+		return prefs.get(SettingsConstants.CURRENT_API_KEY, "");
 	}
 	
 	public static String getServiceKey() {
 		initPrefs();
 		
-		return prefs.get(Constants.SERVICE_KEY, "");
+		return prefs.get(SettingsConstants.CURRENT_SERVICE_KEY, "");
 	}
 	
 	public static String getUsername() {
 		initPrefs();
 		
-		return prefs.get(Constants.USERNAME, "");
+		return prefs.get(SettingsConstants.CURRENT_USERNAME, "");
 	}
 	
 	public static String getSelectedOrganization() {
 		initPrefs();
 		
-		return prefs.get(Constants.ORGNAME, "");
+		return prefs.get(SettingsConstants.CURRENT_ORG_NAME, "");
 	}
 	
 	public static String getSelectedOrganizationUuid() {
 		initPrefs();
 		
-		return prefs.get(Constants.ORGUUID, "");
-	}
-	
-	public static boolean editOrganization(final String organization, final String apiKey, final String organizationUuid) throws OrganizationNotFoundException {
-		initPrefs();
-		
-		if(prefs.get(organization, null) == null)
-			throw new OrganizationNotFoundException("Organization does not exists");
-		
-		prefs.put(organization, apiKey + ";" + organizationUuid);
-		
-		return flushPrefs();
-	}
-	
-	public static boolean saveSelectedPreferences(final String teamServerUrl, final String serviceKey, final String apiKey, 
-			final String username, final String orgName, final String orgUuid) {
-		initPrefs();
-		
-		prefs.put(Constants.TEAM_SERVER_URL, teamServerUrl);
-		prefs.put(Constants.SERVICE_KEY, serviceKey);
-		prefs.put(Constants.API_KEY, apiKey);
-		prefs.put(Constants.USERNAME, username);
-		prefs.put(Constants.ORGNAME, orgName);
-		prefs.put(Constants.ORGUUID, orgUuid);
-		
-		return flushPrefs();
+		return prefs.get(SettingsConstants.CURRENT_ORG_ID, "");
 	}
 	
 	public static boolean flushPrefs() {
@@ -242,73 +221,17 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 	}
 
 	public static ExtendedContrastSDK getContrastSDK() {
-		IEclipsePreferences prefs = getPreferences();
-		String username = prefs.get(Constants.USERNAME, null);
-		if (username == null || username.isEmpty()) {
+		ConnectionConfig config = getSelectedConfig();
+		if(config.getUsername() == null || config.getUsername().isEmpty())
 			return null;
-		}
-		String serviceKey = prefs.get(Constants.SERVICE_KEY, null);
-		if (serviceKey == null || serviceKey.isEmpty()) {
+		if(config.getServiceKey() == null || config.getServiceKey().isEmpty())
 			return null;
-		}
-		String apiKey = prefs.get(Constants.API_KEY, null);
-		if (apiKey == null || apiKey.isEmpty()) {
+		if(config.getApiKey() == null || config.getApiKey().isEmpty())
 			return null;
-		}
-		String url = prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
-		if (url == null || url.isEmpty()) {
-			return null;
-		}
-		return getContrastSDK(username, apiKey, serviceKey, url);
-	}
-	
-	public static ExtendedContrastSDK getContrastSDKByOrganization(final String organizationName) {
-		IEclipsePreferences prefs = getPreferences();
-		String username = prefs.get(Constants.USERNAME, null);
-		if (username == null || username.isEmpty()) {
-			return null;
-		}
-		
-		if(StringUtils.isBlank(organizationName))
+		if(config.getTsUrl() == null || config.getTsUrl().isEmpty())
 			return null;
 		
-		OrganizationConfig config = getOrganizationConfiguration(organizationName);
-		if(config == null)
-			return null;
-		
-		String serviceKey = prefs.get(Constants.SERVICE_KEY, null);
-		if (serviceKey == null || serviceKey.isEmpty()) {
-			return null;
-		}
-		String apiKey = config.getApiKey();
-		if (apiKey == null || apiKey.isEmpty()) {
-			return null;
-		}
-		String url = prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
-		if (url == null || url.isEmpty()) {
-			return null;
-		}
-		return getContrastSDK(username, apiKey, serviceKey, url);
-	}
-	
-	public static ExtendedContrastSDK getContrastSDK(final String apiKey) {
-		IEclipsePreferences prefs = getPreferences();
-		String username = prefs.get(Constants.USERNAME, null);
-		if (username == null || username.isEmpty()) {
-			return null;
-		}
-		String serviceKey = prefs.get(Constants.SERVICE_KEY, null);
-		if (serviceKey == null || serviceKey.isEmpty()) {
-			return null;
-		}
-		if (apiKey == null || apiKey.isEmpty()) {
-			return null;
-		}
-		String url = prefs.get(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
-		if (url == null || url.isEmpty()) {
-			return null;
-		}
-		return getContrastSDK(username, apiKey, serviceKey, url);
+		return getContrastSDK(config.getUsername(), config.getApiKey(), config.getServiceKey(), config.getTsUrl());
 	}
 	
 	public static ExtendedContrastSDK getContrastSDK(final String username, final String apiKey, 

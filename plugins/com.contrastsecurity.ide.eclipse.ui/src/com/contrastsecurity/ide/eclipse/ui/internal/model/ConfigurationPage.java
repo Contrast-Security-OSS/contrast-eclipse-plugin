@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
 import com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.views.VulnerabilitiesView;
 

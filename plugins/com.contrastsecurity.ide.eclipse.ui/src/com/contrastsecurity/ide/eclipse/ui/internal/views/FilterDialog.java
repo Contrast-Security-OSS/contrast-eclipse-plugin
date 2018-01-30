@@ -42,9 +42,9 @@ import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Shell;
 
 import com.contrastsecurity.http.TraceFilterForm;
-import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
-import com.contrastsecurity.ide.eclipse.core.Util;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
+import com.contrastsecurity.ide.eclipse.core.util.Util;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ContrastLabelProvider;

@@ -14,8 +14,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -23,35 +23,42 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.window.Window;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableLayout;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
-import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
-import com.contrastsecurity.ide.eclipse.core.Util;
-import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.SettingsConstants;
+import com.contrastsecurity.ide.eclipse.core.internal.preferences.ConnectionConfig;
+import com.contrastsecurity.ide.eclipse.core.util.ConnectionConfigUtil;
+import com.contrastsecurity.ide.eclipse.core.util.Util;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
+import com.contrastsecurity.ide.eclipse.ui.internal.model.PreferencesLabelProvider;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 import com.contrastsecurity.models.Organization;
 import com.contrastsecurity.sdk.ContrastSDK;
@@ -60,21 +67,20 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage";
 	private static final String BLANK = "";
-	private final static String URL_SUFFIX = "/Contrast/api";
 	
-	private Text teamServerText;
-	private Text serviceKeyText;
-	private Text apiKeyText;
-	private Text usernameText;
 	private Button testConnection;
 	private Label testConnectionLabel;
-	private Text organizationUuidText;
 	
-	private Combo organizationCombo;
+	private TableViewer table;
+	private CheckboxTableViewer checkTable;
+	private Map<String, ConnectionConfig> configs;
+	private String selectedConfigId;
 	
-	private Button addOrganizationBtn;
-	private Button editOrganizationBtn;
-	private Button deleteOrganizationBtn;
+	private Button addConnectionBtn;
+	private Button editConnectionBtn;
+	private Button deleteConnectionBtn;
+	
+	private ConnectionConfigDialog configDialog;
 
 	public ContrastPreferencesPage() {
 		setPreferenceStore(ContrastCoreActivator.getDefault().getPreferenceStore());
@@ -87,8 +93,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	@Override
 	protected void performDefaults() {
 		IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
-		prefs.put(Constants.TEAM_SERVER_URL, Constants.TEAM_SERVER_URL_VALUE);
-		initPreferences();
+		prefs.put(SettingsConstants.CURRENT_URL, Constants.TEAM_SERVER_URL_VALUE);
 		super.performDefaults();
 	}
 
@@ -97,15 +102,12 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	 */
 	@Override
 	public boolean performOk() {
-		verifyTeamServerUrl();
+		ContrastCoreActivator.saveConfigurations(configs);
 		
-		ContrastCoreActivator.saveSelectedPreferences(
-				teamServerText.getText(), 
-				serviceKeyText.getText(), 
-				apiKeyText.getText(), 
-				usernameText.getText(), 
-				organizationCombo.getText(), 
-				organizationUuidText.getText());
+		if(StringUtils.isNotBlank(selectedConfigId))
+			ContrastCoreActivator.setSelectedConfiguration(selectedConfigId, configs.get(selectedConfigId));
+		else
+			ContrastCoreActivator.clearSelectedConfig();
 		
 		return super.performOk();
 	}
@@ -120,20 +122,112 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
 		composite.setLayoutData(gd);
 		
-		UIElementUtils.createLabel(composite, "Contrast URL:");
-		teamServerText = UIElementUtils.createText(composite, 2, 1);
-		teamServerText.setToolTipText("This should be the address of your TeamServer from which vulnerability data should be retrieved.\n If you’re using our SaaS, it’s okay to leave this in its default.");
-
-		UIElementUtils.createLabel(composite, "Username:");
-		usernameText = UIElementUtils.createText(composite, 2, 1);
+		table = new TableViewer(composite, SWT.CHECK | SWT.SINGLE | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
+		table.setLabelProvider(new PreferencesLabelProvider());
+		table.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 6));
 		
-		UIElementUtils.createLabel(composite, "Service Key:");
-		serviceKeyText = UIElementUtils.createText(composite, 2, 1);
-		serviceKeyText.setToolTipText("You can find your Service Key at the bottom of your Account Profile, under \"Your Keys\".");
+		TableColumn column = new TableColumn(table.getTable(), SWT.NONE);
+		column.setText("Username");
+		column.setWidth(180);
 		
-		UIElementUtils.createLabel(composite, "Organization: ");
-		createOrganizationCombo(composite);
-		createOrganizationButtons(composite);
+		column = new TableColumn(table.getTable(), SWT.NONE);
+		column.setText("Organization name");
+		column.setWidth(180);
+		
+		column = new TableColumn(table.getTable(), SWT.NONE);
+		column.setText("Organization UUID");
+		column.setWidth(220);
+		
+		table.getTable().setHeaderVisible(true);
+		table.getTable().setLinesVisible(true);
+		table.setContentProvider(ArrayContentProvider.getInstance());
+		TableLayout tableLayout = new TableLayout();
+		table.getTable().setLayout(tableLayout);
+		
+		GridData btnGd = new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1);
+		addConnectionBtn = UIElementUtils.createButton(composite, btnGd, "Add");
+		editConnectionBtn = UIElementUtils.createButton(composite, btnGd, "Edit");
+		deleteConnectionBtn = UIElementUtils.createButton(composite, btnGd, "Delete");
+		
+		configs = ContrastCoreActivator.getConfigurations();
+		table.setInput(configs.values());
+		
+		checkTable = new CheckboxTableViewer(table.getTable());
+		checkTable.addCheckStateListener(new ICheckStateListener() {
+			
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent event) {
+				checkTable.setAllChecked(false);
+				checkTable.setChecked(event.getElement(), true);
+				ConnectionConfig config = (ConnectionConfig) event.getElement();
+				selectedConfigId = ConnectionConfigUtil.generateConfigurationKey(config);
+			}
+		});
+		
+		String selectedKey = ContrastCoreActivator.getSelectedConfigKey();
+		if(StringUtils.isNotBlank(selectedKey) && configs.containsKey(selectedKey)) {
+			selectedConfigId = selectedKey;
+			table.setSelection(new StructuredSelection(configs.get(selectedKey)), true);
+			checkTable.setChecked(configs.get(selectedKey), true);
+		}
+		
+		IConnectionConfigListener listener = new IConnectionConfigListener() {
+			
+			@Override
+			public void onConnectionSave(ConnectionConfig config) {
+				String key = ConnectionConfigUtil.generateConfigurationKey(config);
+				saveConnectionConfig(config, key);
+				updateSelection(key);
+				enableTestConnection();
+				editConnectionBtn.setEnabled(true);
+				deleteConnectionBtn.setEnabled(true);
+			}
+			
+			@Override
+			public void onConnectionUpdate(ConnectionConfig config, String previousKey) {
+				String key = ConnectionConfigUtil.generateConfigurationKey(config);
+				updateConnectionConfig(config, key, previousKey);
+			}
+		};
+		
+		addConnectionBtn.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				onAddConfigPressed(listener);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		editConnectionBtn.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				onEditConfigPressed(listener);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		deleteConnectionBtn.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				onDeleteConfigPressed();
+				enableTestConnection();
+				enableEditConnection();
+				enableDeleteConnection();
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 		
 		UIElementUtils.createLabel(composite, BLANK);
 		gd = new GridData(SWT.CENTER, SWT.FILL, false, false, 3, 1);
@@ -142,7 +236,6 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				verifyTeamServerUrl();
 				testConnection(composite);
 			}
 
@@ -150,203 +243,34 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		
 		gd = new GridData(SWT.CENTER, SWT.FILL, false, false, 3, 1);
 		testConnectionLabel = UIElementUtils.createBasicLabel(composite, gd, "");
-
-		Group defaultOrganizationGroup = new Group(composite, SWT.NONE);
-		defaultOrganizationGroup.setLayout(new GridLayout(2, false));
-		defaultOrganizationGroup.setText("Selected Organization");
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
-		defaultOrganizationGroup.setLayoutData(gd);
-
-		UIElementUtils.createLabel(defaultOrganizationGroup, "API Key:");
-		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-		apiKeyText = UIElementUtils.createBasicText(defaultOrganizationGroup, gd, SWT.BORDER);
-		apiKeyText.setEditable(false);
 		
-		UIElementUtils.createLabel(defaultOrganizationGroup, "UUID:");
-		organizationUuidText = UIElementUtils.createBasicText(defaultOrganizationGroup, gd, SWT.BORDER);
-		organizationUuidText.setEditable(false);
-		
-		initPreferences();
 		enableTestConnection();
-		enableOrganizationViews();
-		teamServerText.addModifyListener(new ModifyListener() {
-
-			@Override
-			public void modifyText(ModifyEvent e) {
-				enableTestConnection();
-				enableOrganizationViews();
-			}
-		});
-		usernameText.addModifyListener(new ModifyListener() {
-
-			@Override
-			public void modifyText(ModifyEvent e) {
-				enableTestConnection();
-				enableOrganizationViews();
-			}
-		});
-		apiKeyText.addModifyListener(new ModifyListener() {
-
-			@Override
-			public void modifyText(ModifyEvent e) {
-				enableTestConnection();
-			}
-		});
-		serviceKeyText.addModifyListener(new ModifyListener() {
-
-			@Override
-			public void modifyText(ModifyEvent e) {
-				enableTestConnection();
-				enableOrganizationViews();
-			}
-		});
+		enableEditConnection();
+		enableDeleteConnection();
+		
 		return composite;
 	}
 	
-	private void verifyTeamServerUrl() {
-		String tsUrl = teamServerText.getText();
-		
-		if(tsUrl.endsWith(URL_SUFFIX))
-			return;
-		
-		tsUrl = StringUtils.stripEnd(tsUrl, "/");
-		if(tsUrl.endsWith(URL_SUFFIX)) {
-			teamServerText.setText(tsUrl);
-			return;
-		}
-		
-		char lastChar = tsUrl.charAt(tsUrl.length() - 1);
-		for(int i = URL_SUFFIX.length() - 1; i > -1; i--) {
-			if(lastChar == URL_SUFFIX.charAt(i) && tsUrl.endsWith(URL_SUFFIX.substring(0, i + 1))) {
-				teamServerText.setText(tsUrl + URL_SUFFIX.substring(i + 1));
-				return;
-			}
-		}
-		
-		teamServerText.setText(tsUrl + URL_SUFFIX);
-	}
-	
-	private void createOrganizationCombo(final Composite parent) {
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1);
-		
-		organizationCombo = new Combo(parent, SWT.READ_ONLY);
-		//Initialize combo with last chosen value
-		String[] list = ContrastCoreActivator.getOrganizationList();
-		if(list.length > 0) {
-			organizationCombo.setItems(list);
-			String orgName = ContrastCoreActivator.getDefaultOrganization();
-			if(orgName != null)
-				organizationCombo.select(ArrayUtils.indexOf(list, orgName));
-		}
-		
-		organizationCombo.setLayoutData(gd);
-		organizationCombo.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				onOrganizationSelected();
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nohing */ }
-		});
-	}
-
-	private void createOrganizationButtons(final Composite parent) {
-		Composite orgComposite = new Composite(parent, SWT.NULL);
-		orgComposite.setLayout(new GridLayout(3, false));
-		orgComposite.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, false, false, 3, 1));
-		GridData gd = new GridData(SWT.RIGHT_TO_LEFT, SWT.FILL, false, false, 1, 1);
-		
-		addOrganizationBtn = UIElementUtils.createButton(orgComposite, gd, "Add");
-		editOrganizationBtn = UIElementUtils.createButton(orgComposite, gd, "Edit");
-		deleteOrganizationBtn = UIElementUtils.createButton(orgComposite, gd, "Delete");
-		
-		addOrganizationBtn.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				verifyTeamServerUrl();
-				onOrganizationCreated(parent.getShell());
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nothing*/ }
-		});
-		
-		editOrganizationBtn.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				verifyTeamServerUrl();
-				onOrganizationEdited(parent.getShell());
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nothing */ }
-		});
-		
-		deleteOrganizationBtn.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				onOrganizationDeleted();
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) { /* Does nothing */ }
-		});
-		enableOrganizationViews();
-	}
-	
-	private void enableOrganizationViews() {
-		if(StringUtils.isBlank(usernameText.getText()) 
-				|| StringUtils.isBlank(teamServerText.getText()) 
-				|| StringUtils.isBlank(serviceKeyText.getText())) {
-			
-			organizationCombo.setEnabled(false);
-			addOrganizationBtn.setEnabled(false);
-			editOrganizationBtn.setEnabled(false);
-			deleteOrganizationBtn.setEnabled(false);
-			organizationCombo.setEnabled(false);
-			
-			return;
-		}
-		else
-			addOrganizationBtn.setEnabled(true);
-		
-		if(organizationCombo.getItemCount() > 0) {
-			organizationCombo.setEnabled(true);
-			
-			if(StringUtils.isNotBlank(organizationCombo.getText())) {
-				editOrganizationBtn.setEnabled(true);
-				deleteOrganizationBtn.setEnabled(true);
-			}
-		}
-		else {
-			editOrganizationBtn.setEnabled(false);
-			deleteOrganizationBtn.setEnabled(false);
-			organizationCombo.setEnabled(false);
-		}
-	}
-	
 	private void enableTestConnection() {
-		testConnection.setEnabled(!usernameText.getText().isEmpty() && !teamServerText.getText().isEmpty()
-				&& !apiKeyText.getText().isEmpty() && !serviceKeyText.getText().isEmpty());
-	}
-
-	private void initPreferences() {
-		teamServerText.setText(ContrastCoreActivator.getTeamServerUrl());
-		serviceKeyText.setText(ContrastCoreActivator.getServiceKey());
-		apiKeyText.setText(ContrastCoreActivator.getSelectedApiKey());
-		usernameText.setText(ContrastCoreActivator.getUsername());
-		
-		organizationUuidText.setText(ContrastCoreActivator.getSelectedOrganizationUuid());
+		testConnection.setEnabled(!configs.isEmpty());
 	}
 	
-	//===================== Selection listeners ========================
+	private void enableEditConnection() {
+		if(table.getSelection() instanceof IStructuredSelection && table.getStructuredSelection().getFirstElement() != null)
+			editConnectionBtn.setEnabled(true);
+		else
+			editConnectionBtn.setEnabled(false);
+	}
+	
+	private void enableDeleteConnection() {
+		deleteConnectionBtn.setEnabled(configs.size() > 0);
+	}
+	
+	//===================== Selection listener functions ========================
 	private void testConnection(Composite composite) {
-		final String url = teamServerText.getText();
+		ConnectionConfig config = configs.get(selectedConfigId);
+		
+		final String url = config.getTsUrl();
 		URL u;
         try {
             u = new URL(url);
@@ -366,8 +290,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 					@Override
 					public void run() {
-						ContrastSDK sdk = new ContrastSDK(usernameText.getText(), serviceKeyText.getText(),
-								apiKeyText.getText(), url);
+						ContrastSDK sdk = new ContrastSDK(config.getUsername(), config.getServiceKey(),
+								config.getApiKey(), url);
 						try {
 							Organization organization = Util.getDefaultOrganization(sdk);
 							if (organization == null || organization.getOrgUuid() == null) {
@@ -403,66 +327,93 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		}
 	}
 	
-	//===================== Organization combo listeners ========================
-	private void onOrganizationSelected() {
-		String orgName = organizationCombo.getText();
-		if(StringUtils.isNotBlank(orgName)) {
-			OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(orgName);
-			apiKeyText.setText(config.getApiKey());
-			organizationUuidText.setText(config.getOrganizationUUIDKey());
+	//===================== Configuration buttons listener functions ========================
+	private void onAddConfigPressed(final IConnectionConfigListener listener) {
+		String lastUsername = "";
+		String lastServiceKey = "";
+		String lastTsUrl = "";
+		
+		if(StringUtils.isNotBlank(selectedConfigId)) {
+			ConnectionConfig config = configs.get(selectedConfigId);
+			lastUsername = config.getUsername();
+			lastServiceKey = config.getServiceKey();
+			lastTsUrl = config.getTsUrl();
+		}
+		
+		configDialog = new ConnectionConfigDialog(getShell(), lastUsername, lastServiceKey, lastTsUrl, listener);
+		configDialog.open();
+	}
+	
+	private void onEditConfigPressed(final IConnectionConfigListener listener) {
+		ISelection selection = table.getSelection();
+		
+		if(selection instanceof IStructuredSelection && ((IStructuredSelection) selection).getFirstElement() instanceof ConnectionConfig) {
+			ConnectionConfig config = (ConnectionConfig) ((IStructuredSelection) selection).getFirstElement();
+			configDialog = new ConnectionConfigDialog(getShell(), config, listener);
+			configDialog.open();
+		}
+	}
+	
+	private void onDeleteConfigPressed() {
+		ISelection selection = table.getSelection();
+		
+		if(selection instanceof IStructuredSelection && ((IStructuredSelection) selection).getFirstElement() instanceof ConnectionConfig) {
+			ConnectionConfig config = (ConnectionConfig) ((IStructuredSelection) selection).getFirstElement();
+			String configKey = ConnectionConfigUtil.generateConfigurationKey(config);
+			table.remove(config);
+			configs.remove(configKey);
 			
-			editOrganizationBtn.setEnabled(true);
-			deleteOrganizationBtn.setEnabled(true);
+			if(configs.size() > 0) {
+				ConnectionConfig firstConfig = (ConnectionConfig) table.getElementAt(0);
+				table.setSelection(new StructuredSelection(firstConfig), true);
+				
+				if(!selectedConfigId.equals(configKey))
+					return;
+				
+				checkTable.setChecked(firstConfig, true);
+				selectedConfigId = ConnectionConfigUtil.generateConfigurationKey(firstConfig);
+			}
+			else if(configs.size() == 0)
+				selectedConfigId = "";
+		}
+	}
+	//===================== Configuration changes listener functions ========================
+	private void saveConnectionConfig(ConnectionConfig config, String key) {
+		configs.put(key, config);
+		if(configDialog != null)
+			configDialog.close();
+		
+		table.setInput(configs.values());
+	}
+	
+	private void updateSelection(String key) {
+		table.setSelection(new StructuredSelection(configs.get(key)), true);
+		
+		if(table.getTable().getItemCount() == 1) {
+			checkTable.setChecked(configs.get(key), true);
+			selectedConfigId = key;
 		}
 		else {
-			editOrganizationBtn.setEnabled(false);
-			deleteOrganizationBtn.setEnabled(false);
+			ConnectionConfig selected = configs.get(selectedConfigId);
+			checkTable.setChecked(selected, true);
 		}
 	}
 	
-	//===================== Organization Buttons listeners ========================
-	private void onOrganizationCreated(Shell shell) {
-		OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(shell, usernameText.getText(),
-				serviceKeyText.getText(), teamServerText.getText());
-		dialog.create();
-		if(dialog.open() == Window.OK) {
-			int selected = organizationCombo.getSelectionIndex();
-			organizationCombo.setItems(ContrastCoreActivator.getOrganizationList());
-			if(organizationCombo.getItemCount() == 1)
-				organizationCombo.select(0);
-			else if(selected > -1)
-				organizationCombo.select(selected);
-			
-			enableOrganizationViews();
+	private void updateConnectionConfig(ConnectionConfig config, String newKey, String previousKey) {
+		saveConnectionConfig(config, newKey);
+		
+		if(newKey.equals(previousKey))
+			return;
+		
+		ConnectionConfig previousConfig = configs.get(previousKey);
+		configs.remove(previousKey);
+		table.remove(previousConfig);
+		table.setSelection(new StructuredSelection(config), true);
+		
+		if(selectedConfigId.equals(previousKey)) {
+			checkTable.setChecked(config, true);
+			selectedConfigId = newKey;
 		}
-	}
-	
-	private void onOrganizationEdited(Shell shell) {
-		OrganizationPreferencesDialog dialog = new OrganizationPreferencesDialog(shell, usernameText.getText(), 
-				serviceKeyText.getText(), teamServerText.getText(), organizationCombo.getText());
-		dialog.create();
-		if(dialog.open() == Window.OK) {
-			if(!dialog.getIsOrganizationCreated()) {
-				OrganizationConfig config = ContrastCoreActivator.getOrganizationConfiguration(organizationCombo.getText());
-				apiKeyText.setText(config.getApiKey());
-				organizationUuidText.setText(config.getOrganizationUUIDKey());
-			}
-			else {
-				String orgName = organizationCombo.getText();
-				String[] list = ContrastCoreActivator.getOrganizationList();
-				organizationCombo.setItems(list);
-				organizationCombo.select(ArrayUtils.indexOf(list, orgName));
-			}
-		}
-	}
-	
-	private void onOrganizationDeleted() {
-		ContrastCoreActivator.removeOrganization(organizationCombo.getSelectionIndex());
-		organizationCombo.removeAll();
-		organizationCombo.setItems(ContrastCoreActivator.getOrganizationList());
-		apiKeyText.setText("");
-		organizationUuidText.setText("");
-		enableOrganizationViews();
 	}
 
 	@Override

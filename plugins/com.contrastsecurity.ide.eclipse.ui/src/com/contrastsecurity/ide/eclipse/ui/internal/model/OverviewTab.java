@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.unbescape.html.HtmlEscape;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
 import com.contrastsecurity.ide.eclipse.core.extended.Chapter;
 import com.contrastsecurity.ide.eclipse.core.extended.PropertyResource;
 import com.contrastsecurity.ide.eclipse.core.extended.Risk;

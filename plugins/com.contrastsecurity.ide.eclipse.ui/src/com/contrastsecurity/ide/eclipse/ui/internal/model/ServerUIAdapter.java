@@ -14,7 +14,7 @@
  *******************************************************************************/
 package com.contrastsecurity.ide.eclipse.ui.internal.model;
 
-import com.contrastsecurity.ide.eclipse.core.Constants;
+import com.contrastsecurity.ide.eclipse.core.constants.Constants;
 import com.contrastsecurity.models.Server;
 
 public class ServerUIAdapter implements IContrastLabelProvider {
