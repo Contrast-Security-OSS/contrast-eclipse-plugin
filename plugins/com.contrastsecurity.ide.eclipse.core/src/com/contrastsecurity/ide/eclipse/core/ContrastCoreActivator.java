@@ -154,7 +154,7 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		return prefs.get(SettingsConstants.SELECTED_CONFIGURATION, "");
 	}
 	
-	public static void clearSelectedConfig() {
+	public static boolean clearSelectedConfig() {
 		initPrefs();
 		
 		prefs.remove(SettingsConstants.SELECTED_CONFIGURATION);
@@ -164,6 +164,8 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		prefs.remove(SettingsConstants.CURRENT_API_KEY);
 		prefs.remove(SettingsConstants.CURRENT_ORG_ID);
 		prefs.remove(SettingsConstants.CURRENT_ORG_NAME);
+		
+		return flushPrefs();
 	}
 	
 	/*==============  Preferences functions  ========================*/

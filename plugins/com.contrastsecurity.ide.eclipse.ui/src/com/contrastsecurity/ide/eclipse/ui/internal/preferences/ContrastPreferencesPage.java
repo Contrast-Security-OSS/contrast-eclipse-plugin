@@ -124,7 +124,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		
 		table = new TableViewer(composite, SWT.CHECK | SWT.SINGLE | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
 		table.setLabelProvider(new PreferencesLabelProvider());
-		table.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 10));
+		table.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 6));
 		
 		TableColumn column = new TableColumn(table.getTable(), SWT.NONE);
 		column.setText("Username");
@@ -177,6 +177,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			public void onConnectionSave(ConnectionConfig config) {
 				String key = ConnectionConfigUtil.generateConfigurationKey(config);
 				saveConnectionConfig(config, key);
+				updateSelection(key);
+				enableTestConnection();
 				editConnectionBtn.setEnabled(true);
 				deleteConnectionBtn.setEnabled(true);
 			}
@@ -382,12 +384,19 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			configDialog.close();
 		
 		table.setInput(configs.values());
+	}
+	
+	private void updateSelection(String key) {
+		table.setSelection(new StructuredSelection(configs.get(key)), true);
 		
 		if(table.getTable().getItemCount() == 1) {
-			table.setSelection(new StructuredSelection(configs.get(key)), true);
 			checkTable.setChecked(configs.get(key), true);
+			selectedConfigId = key;
 		}
-		enableTestConnection();
+		else {
+			ConnectionConfig selected = configs.get(selectedConfigId);
+			checkTable.setChecked(selected, true);
+		}
 	}
 	
 	private void updateConnectionConfig(ConnectionConfig config, String newKey, String previousKey) {
