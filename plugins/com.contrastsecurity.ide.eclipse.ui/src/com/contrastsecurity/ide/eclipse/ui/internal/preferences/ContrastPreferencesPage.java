@@ -106,6 +106,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		
 		if(StringUtils.isNotBlank(selectedConfigId))
 			ContrastCoreActivator.setSelectedConfiguration(selectedConfigId, configs.get(selectedConfigId));
+		else
+			ContrastCoreActivator.clearSelectedConfig();
 		
 		return super.performOk();
 	}
@@ -175,6 +177,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			public void onConnectionSave(ConnectionConfig config) {
 				String key = ConnectionConfigUtil.generateConfigurationKey(config);
 				saveConnectionConfig(config, key);
+				editConnectionBtn.setEnabled(true);
+				deleteConnectionBtn.setEnabled(true);
 			}
 			
 			@Override
@@ -214,6 +218,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			public void widgetSelected(SelectionEvent e) {
 				onDeleteConfigPressed();
 				enableTestConnection();
+				enableEditConnection();
+				enableDeleteConnection();
 			}
 			
 			@Override
@@ -237,15 +243,25 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		testConnectionLabel = UIElementUtils.createBasicLabel(composite, gd, "");
 		
 		enableTestConnection();
+		enableEditConnection();
+		enableDeleteConnection();
 		
 		return composite;
 	}
 	
 	private void enableTestConnection() {
-		//TODO Refactor
-		/*testConnection.setEnabled(!usernameText.getText().isEmpty() && !teamServerText.getText().isEmpty()
-				&& !apiKeyText.getText().isEmpty() && !serviceKeyText.getText().isEmpty());*/
 		testConnection.setEnabled(!configs.isEmpty());
+	}
+	
+	private void enableEditConnection() {
+		if(table.getSelection() instanceof IStructuredSelection && table.getStructuredSelection().getFirstElement() != null)
+			editConnectionBtn.setEnabled(true);
+		else
+			editConnectionBtn.setEnabled(false);
+	}
+	
+	private void enableDeleteConnection() {
+		deleteConnectionBtn.setEnabled(configs.size() > 0);
 	}
 	
 	//===================== Selection listener functions ========================
@@ -345,11 +361,18 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 			table.remove(config);
 			configs.remove(configKey);
 			
-			if(configs.size() > 0 && selectedConfigId.equals(configKey)) {
+			if(configs.size() > 0) {
 				ConnectionConfig firstConfig = (ConnectionConfig) table.getElementAt(0);
+				table.setSelection(new StructuredSelection(firstConfig), true);
+				
+				if(!selectedConfigId.equals(configKey))
+					return;
+				
 				checkTable.setChecked(firstConfig, true);
 				selectedConfigId = ConnectionConfigUtil.generateConfigurationKey(firstConfig);
 			}
+			else if(configs.size() == 0)
+				selectedConfigId = "";
 		}
 	}
 	//===================== Configuration changes listener functions ========================
@@ -373,7 +396,10 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 		if(newKey.equals(previousKey))
 			return;
 		
+		ConnectionConfig previousConfig = configs.get(previousKey);
 		configs.remove(previousKey);
+		table.remove(previousConfig);
+		table.setSelection(new StructuredSelection(config), true);
 		
 		if(selectedConfigId.equals(previousKey)) {
 			checkTable.setChecked(config, true);

@@ -154,6 +154,18 @@ public class ContrastCoreActivator extends AbstractUIPlugin {
 		return prefs.get(SettingsConstants.SELECTED_CONFIGURATION, "");
 	}
 	
+	public static void clearSelectedConfig() {
+		initPrefs();
+		
+		prefs.remove(SettingsConstants.SELECTED_CONFIGURATION);
+		prefs.remove(SettingsConstants.CURRENT_USERNAME);
+		prefs.remove(SettingsConstants.CURRENT_URL);
+		prefs.remove(SettingsConstants.CURRENT_SERVICE_KEY);
+		prefs.remove(SettingsConstants.CURRENT_API_KEY);
+		prefs.remove(SettingsConstants.CURRENT_ORG_ID);
+		prefs.remove(SettingsConstants.CURRENT_ORG_NAME);
+	}
+	
 	/*==============  Preferences functions  ========================*/
 	
 	public static String getTeamServerUrl() {
