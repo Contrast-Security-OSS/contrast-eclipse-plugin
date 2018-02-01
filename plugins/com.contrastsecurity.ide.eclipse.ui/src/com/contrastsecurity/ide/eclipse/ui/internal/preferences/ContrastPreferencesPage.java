@@ -376,7 +376,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 								testConnectionLabel.setText("Connection confirmed!");
 							}
 						} catch (IOException e1) {
-							showErrorMessage(e1, getShell(), "Connection error", "Verify your Contrast URL. If error persists, report this to your Contrast admin.");
+							showErrorMessage(e1, getShell(), "Connection error", "Could not connect to Contrast. Please verify that the URL is correct and try again.");
 						} catch (UnauthorizedException e1) {
 							showErrorMessage(e1, getShell(), "Access denied", "Verify your credentials and make sure you have access to the selected organization.");
 						} catch (Exception e1) {
