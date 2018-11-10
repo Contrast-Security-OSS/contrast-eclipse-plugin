@@ -93,7 +93,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 	 */
 	@Override
 	public boolean performOk() {
-		final IStructuredSelection selection = tableViewer.getStructuredSelection();
+		final IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
 
 		if (selection != null) {
 			String organizationName = "";
