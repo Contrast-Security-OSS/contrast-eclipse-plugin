@@ -15,7 +15,6 @@
 package com.contrastsecurity.ide.eclipse.ui.internal.views;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -134,31 +133,37 @@ public class FilterDialog extends Dialog {
 				dateTimeFrom.setEnabled(false);
 				dateTimeTo.setEnabled(false);
 			}
-			LocalDateTime localDateTime = LocalDateTime.now();
+
+			Calendar calendar = Calendar.getInstance();
 			switch (selection) {
 			case Constants.LAST_DETECTED_ALL:
 				prefs.remove(Constants.LAST_DETECTED_FROM);
 				prefs.remove(Constants.LAST_DETECTED_TO);
 				break;
 			case Constants.LAST_DETECTED_HOUR:
-				LocalDateTime localDateTimeMinusHour = localDateTime.minusHours(1);
-				setDateTimeFromLocalDateTime(dateTimeFrom, localDateTimeMinusHour);
+				calendar = Calendar.getInstance();
+				calendar.add(Calendar.HOUR_OF_DAY, -1);
+				setDateTimeFromCalendar(dateTimeFrom, calendar);
 				break;
 			case Constants.LAST_DETECTED_DAY:
-				LocalDateTime localDateTimeMinusDay = localDateTime.minusDays(1);
-				setDateTimeFromLocalDateTime(dateTimeFrom, localDateTimeMinusDay);
+				calendar = Calendar.getInstance();
+				calendar.add(Calendar.DAY_OF_MONTH, -1);
+				setDateTimeFromCalendar(dateTimeFrom, calendar);
 				break;
 			case Constants.LAST_DETECTED_WEEK:
-				LocalDateTime localDateTimeMinusWeek = localDateTime.minusWeeks(1);
-				setDateTimeFromLocalDateTime(dateTimeFrom, localDateTimeMinusWeek);
+				calendar = Calendar.getInstance();
+				calendar.add(Calendar.WEEK_OF_YEAR, -1);
+				setDateTimeFromCalendar(dateTimeFrom, calendar);
 				break;
 			case Constants.LAST_DETECTED_MONTH:
-				LocalDateTime localDateTimeMinusMonth = localDateTime.minusMonths(1);
-				setDateTimeFromLocalDateTime(dateTimeFrom, localDateTimeMinusMonth);
+				calendar = Calendar.getInstance();
+				calendar.add(Calendar.MONTH, -1);
+				setDateTimeFromCalendar(dateTimeFrom, calendar);
 				break;
 			case Constants.LAST_DETECTED_YEAR:
-				LocalDateTime localDateTimeMinusYear = localDateTime.minusYears(1);
-				setDateTimeFromLocalDateTime(dateTimeFrom, localDateTimeMinusYear);
+				calendar = Calendar.getInstance();
+				calendar.add(Calendar.YEAR, -1);
+				setDateTimeFromCalendar(dateTimeFrom, calendar);
 				break;
 			case Constants.LAST_DETECTED_CUSTOM:
 				dateTimeFrom.setEnabled(true);
@@ -168,19 +173,10 @@ public class FilterDialog extends Dialog {
 		}
 	};
 
-	private void setDateTimeFromLocalDateTime(final DateTime dateTime, final LocalDateTime localDateTime) {
-		dateTime.setYear(localDateTime.getYear());
-		dateTime.setDay(localDateTime.getDayOfMonth());
-		dateTime.setMonth(localDateTime.getMonthValue() - 1);
-		dateTime.setHours(localDateTime.getHour());
-		dateTime.setMinutes(localDateTime.getMinute());
-		dateTime.setSeconds(localDateTime.getSecond());
-	}
-
 	private void setDateTimeFromCalendar(final DateTime dateTime, final Calendar calendar) {
 		dateTime.setYear(calendar.get(Calendar.YEAR));
 		dateTime.setDay(calendar.get(Calendar.DAY_OF_MONTH));
-		dateTime.setMonth(calendar.get(Calendar.MONTH) - 1);
+		dateTime.setMonth(calendar.get(Calendar.MONTH));
 		dateTime.setHours(calendar.get(Calendar.HOUR_OF_DAY));
 		dateTime.setMinutes(calendar.get(Calendar.MINUTE));
 		dateTime.setSeconds(calendar.get(Calendar.SECOND));
