@@ -2,7 +2,7 @@
 <feature
       id="com.contrastsecurity.ide.eclipse.feature"
       label="Contrast IDE plugin for Eclipse"
-      version="2.1.0.qualifier"
+      version="2.1.0"
       provider-name="Contrast Security"
       plugin="com.contrastsecurity.ide.eclipse.core">
 
