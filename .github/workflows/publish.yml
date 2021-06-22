@@ -2,7 +2,6 @@ name: Upload to S3
 
 on:
   workflow_dispatch:
-    types: [created]
 
 jobs:
   build:
