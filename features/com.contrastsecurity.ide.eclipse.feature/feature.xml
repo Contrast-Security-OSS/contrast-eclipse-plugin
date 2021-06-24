@@ -2,7 +2,7 @@
 <feature
       id="com.contrastsecurity.ide.eclipse.feature"
       label="%FEATURE_NAME"
-      version="2.5.0.qualifier"
+      version="3.0.0.qualifier"
       provider-name="%PROVIDER_NAME"
       plugin="com.contrastsecurity.ide.eclipse.core">
    <description>

@@ -1,14 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2017 Contrast Security.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under
  * the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 3 of the License.
- * 
+ *
  * The terms of the GNU GPL version 3 which accompanies this distribution
  * and is available at https://www.gnu.org/licenses/gpl-3.0.en.html
- * 
+ *
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
@@ -71,12 +71,6 @@ import com.contrastsecurity.http.TraceFilterForm;
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
-import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
-import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
-import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
-import com.contrastsecurity.ide.eclipse.core.extended.RecommendationResource;
-import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
-import com.contrastsecurity.ide.eclipse.core.extended.TagsResource;
 import com.contrastsecurity.ide.eclipse.core.internal.preferences.OrganizationConfig;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.cache.ContrastCache;
@@ -95,9 +89,15 @@ import com.contrastsecurity.ide.eclipse.ui.internal.model.VulnerabilityLabelProv
 import com.contrastsecurity.ide.eclipse.ui.internal.model.VulnerabilityPage;
 import com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage;
 import com.contrastsecurity.models.Applications;
+import com.contrastsecurity.models.EventSummaryResponse;
+import com.contrastsecurity.models.HttpRequestResponse;
+import com.contrastsecurity.models.RecommendationResponse;
 import com.contrastsecurity.models.Servers;
+import com.contrastsecurity.models.StoryResponse;
+import com.contrastsecurity.models.TagsResponse;
 import com.contrastsecurity.models.Trace;
 import com.contrastsecurity.models.Traces;
+import com.contrastsecurity.sdk.ContrastSDK;
 
 /**
  * Vulnerabilities View
@@ -124,7 +124,7 @@ public class VulnerabilitiesView extends ViewPart {
 	private final static int VIEW_VULNERABILITY_EVENTS_ACTION = 1;
 	/**
 	 * The mouse event should trigger to take the user to vulnerability on browser.
-	 * 
+	 *
 	 * @warning Might not work if the default organization its different from
 	 *          current one on eclipse plugin.
 	 */
@@ -135,7 +135,7 @@ public class VulnerabilitiesView extends ViewPart {
 	private Action openPreferencesPage;
 	private Action doubleClickAction;
 	private Label statusLabel;
-	private ExtendedContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
+	private ContrastSDK sdk = ContrastCoreActivator.getContrastSDK();
 	private ContrastCache contrastCache = ContrastUIActivator.getContrastCache();
 	private VulnerabilityPage mainPage;
 	private VulnerabilityPage noVulnerabilitiesPage;
@@ -150,7 +150,7 @@ public class VulnerabilitiesView extends ViewPart {
 	private int currentOffset = 0;
 	private static final int PAGE_LIMIT = 20;
 	private int total = 0;
-	
+
 	IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
 
 	TraceFilterForm currentTraceFilterForm;
@@ -216,6 +216,15 @@ public class VulnerabilitiesView extends ViewPart {
 	 * The constructor.
 	 */
 	public VulnerabilitiesView() {
+	}
+
+
+	public ContrastSDK getSdk() {
+		return sdk;
+	}
+
+	public void refreshSdk() {
+		sdk = ContrastCoreActivator.getContrastSDK();
 	}
 
 	/**
@@ -402,7 +411,7 @@ public class VulnerabilitiesView extends ViewPart {
 	/**
 	 * Based on the mouse event shows the user the vulnerability in browser or its
 	 * details on the plugin.
-	 * 
+	 *
 	 * @param xCoord
 	 *            Mouse event X coordinate.
 	 * @param yCoord
@@ -435,7 +444,7 @@ public class VulnerabilitiesView extends ViewPart {
 
 	/**
 	 * Determines what action should be performed based on the mouse event.
-	 * 
+	 *
 	 * @param isDoubleClick
 	 *            Whether the mouse event that triggered this was a double click
 	 *            event.
@@ -463,13 +472,13 @@ public class VulnerabilitiesView extends ViewPart {
 	private void showVulnerabiltyDetails(Trace trace, VulnerabilityDetailsTab tab) {
 		BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
 			public void run() {
-				StoryResource story = null;
-				EventSummaryResource eventSummary = null;
-				HttpRequestResource httpRequest = null;
+				StoryResponse story = null;
+				EventSummaryResponse eventSummary = null;
+				HttpRequestResponse httpRequest = null;
 				String status = null;
-				RecommendationResource recommendationResource = null;
-				TagsResource traceTagsResource = null;
-				TagsResource orgTagsResource = null;
+				RecommendationResponse recommendationResource = null;
+				TagsResponse traceTagsResource = null;
+				TagsResponse orgTagsResource = null;
 
 				try {
 					Key key = new Key(ContrastUIActivator.getOrgUuid(), trace.getUuid());
@@ -511,9 +520,9 @@ public class VulnerabilitiesView extends ViewPart {
 		});
 	}
 
-	private RecommendationResource getRecommendationResource(Key key) throws IOException, UnauthorizedException {
+	private RecommendationResponse getRecommendationResource(Key key) throws IOException, UnauthorizedException {
 
-		RecommendationResource recommendationResource = contrastCache.getRecommendationResources().get(key);
+		RecommendationResponse recommendationResource = contrastCache.getRecommendationResources().get(key);
 		if (recommendationResource == null) {
 			recommendationResource = sdk.getRecommendation(key.getOrgUuid(), key.getTraceId());
 			contrastCache.getRecommendationResources().put(key, recommendationResource);
@@ -521,22 +530,22 @@ public class VulnerabilitiesView extends ViewPart {
 		return recommendationResource;
 	}
 
-	private TagsResource getTags(Key key) throws IOException, UnauthorizedException {
-		TagsResource tagsResource = contrastCache.getTagsResources().get(key);
+	private TagsResponse getTags(Key key) throws IOException, UnauthorizedException {
+		TagsResponse tagsResource = contrastCache.getTagsResources().get(key);
 
 		if (tagsResource == null) {
 			if (key.getTraceId() != null) {
 				tagsResource = sdk.getTagsByTrace(key.getOrgUuid(), key.getTraceId());
 			} else {
-				tagsResource = sdk.getTagsByOrg(key.getOrgUuid());
+				tagsResource = sdk.getTraceTagsByOrganization(key.getOrgUuid());
 			}
 			contrastCache.getTagsResources().put(key, tagsResource);
 		}
 		return tagsResource;
 	}
 
-	private StoryResource getStory(Key key) throws IOException, UnauthorizedException {
-		StoryResource story = contrastCache.getStoryResources().get(key);
+	private StoryResponse getStory(Key key) throws IOException, UnauthorizedException {
+		StoryResponse story = contrastCache.getStoryResources().get(key);
 		if (story == null) {
 			story = sdk.getStory(key.getOrgUuid(), key.getTraceId());
 			contrastCache.getStoryResources().put(key, story);
@@ -544,8 +553,8 @@ public class VulnerabilitiesView extends ViewPart {
 		return story;
 	}
 
-	private EventSummaryResource getEventSummary(Key key) throws IOException, UnauthorizedException {
-		EventSummaryResource eventSummary = contrastCache.getEventSummaryResources().get(key);
+	private EventSummaryResponse getEventSummary(Key key) throws IOException, UnauthorizedException {
+		EventSummaryResponse eventSummary = contrastCache.getEventSummaryResources().get(key);
 		if (eventSummary == null) {
 			eventSummary = sdk.getEventSummary(key.getOrgUuid(), key.getTraceId());
 			contrastCache.getEventSummaryResources().put(key, eventSummary);
@@ -553,8 +562,8 @@ public class VulnerabilitiesView extends ViewPart {
 		return eventSummary;
 	}
 
-	private HttpRequestResource getHttpRequest(Key key) throws IOException, UnauthorizedException {
-		HttpRequestResource httpRequest = contrastCache.getHttpRequestResources().get(key);
+	private HttpRequestResponse getHttpRequest(Key key) throws IOException, UnauthorizedException {
+		HttpRequestResponse httpRequest = contrastCache.getHttpRequestResources().get(key);
 		if (httpRequest == null) {
 			httpRequest = sdk.getHttpRequest(key.getOrgUuid(), key.getTraceId());
 			contrastCache.getHttpRequestResources().put(key, httpRequest);
@@ -563,8 +572,10 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	private String getVulnerabilityStatus(Key key) throws IOException, UnauthorizedException {
-		Trace trace = sdk.getTraceByUuid(key.getOrgUuid(), key.getTraceId()).getTrace();
-		return trace.getStatus();
+		TraceFilterForm form = new TraceFilterForm();
+		form.setFilterText(key.getTraceId());
+		List<Trace> traces = sdk.getTracesInOrg(key.getOrgUuid(), form).getTraces();
+		return traces.get(0).getStatus();
 	}
 
 	public void refreshTraces(final boolean isFullRefresh) {
@@ -675,7 +686,7 @@ public class VulnerabilitiesView extends ViewPart {
 
 	/**
 	 * Makes refresh of traces list, services and applications lists.
-	 * 
+	 *
 	 * @param traces
 	 *            New traces list.
 	 * @param selectedServer
@@ -834,7 +845,7 @@ public class VulnerabilitiesView extends ViewPart {
 					prefs.put(Constants.APPLICATION_ID, Constants.ALL_APPLICATIONS);
 					prefs.put(Constants.TRACE_FILTER_TYPE_APP_VERSION_TAGS, "");
 					prefs.putInt(Constants.CURRENT_OFFSET, currentOffset);
-					
+
 					sdk = ContrastCoreActivator.getContrastSDK();
 					startRefreshJob();
 				}
@@ -898,14 +909,14 @@ public class VulnerabilitiesView extends ViewPart {
 	}
 
 	public URL getOverviewUrl(String traceId) throws MalformedURLException {
-		
+
 		String teamServerUrl = Constants.TEAM_SERVER_URL_VALUE;
-		
+
 		OrganizationConfig organizationConfig = ContrastCoreActivator.getOrganizationConfiguration(ContrastCoreActivator.getSelectedOrganization());
 		if (organizationConfig != null) {
 			teamServerUrl = organizationConfig.getContrastUrl();
 		}
-		
+
 		teamServerUrl = teamServerUrl.trim();
 		if (teamServerUrl != null && teamServerUrl.endsWith("/api")) {
 			teamServerUrl = teamServerUrl.substring(0, teamServerUrl.length() - 4);
@@ -918,13 +929,6 @@ public class VulnerabilitiesView extends ViewPart {
 		return url;
 	}
 
-	public ExtendedContrastSDK getSdk() {
-		return sdk;
-	}
-
-	public void refreshSdk() {
-		sdk = ContrastCoreActivator.getContrastSDK();
-	}
 
 	private TraceFilterForm getTraceFilterFormFromEclipsePreferences() {
 
@@ -952,7 +956,7 @@ public class VulnerabilitiesView extends ViewPart {
 			Long lastDetectedFrom = prefs.getLong(Constants.LAST_DETECTED_FROM, 0);
 			Long lastDetectedTo = prefs.getLong(Constants.LAST_DETECTED_TO, 0);
 
-			
+
 			if(lastDetected.equals(resource.getString("LAST_DETECTED_ALL"))) {
 				if (lastDetectedFrom != 0) {
 					Date fromDate = new Date(lastDetectedFrom);

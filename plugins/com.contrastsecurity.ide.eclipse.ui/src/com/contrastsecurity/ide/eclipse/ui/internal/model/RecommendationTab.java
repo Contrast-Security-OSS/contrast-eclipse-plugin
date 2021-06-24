@@ -43,26 +43,26 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
-import com.contrastsecurity.ide.eclipse.core.extended.CustomRecommendation;
-import com.contrastsecurity.ide.eclipse.core.extended.CustomRuleReferences;
-import com.contrastsecurity.ide.eclipse.core.extended.RecommendationResource;
-import com.contrastsecurity.ide.eclipse.core.extended.RuleReferences;
+import com.contrastsecurity.models.CustomRecommendation;
+import com.contrastsecurity.models.CustomRuleReferences;
+import com.contrastsecurity.models.RuleReferences;
+import com.contrastsecurity.models.RecommendationResponse;
 
 public class RecommendationTab extends AbstractTab {
 
-	private RecommendationResource recommendationResource;
+	private RecommendationResponse recommendationResource;
 
 	public RecommendationTab(Composite parent, int style) {
 		super(parent, style);
 	}
 
-	public RecommendationResource getRecommendationResource() {
+	public RecommendationResponse getRecommendationResource() {
 		return recommendationResource;
 	}
 
 	static ResourceBundle resource = ResourceBundle.getBundle("OSGI-INF/l10n.bundle");
 
-	public void setRecommendationResource(RecommendationResource recommendationResource) {
+	public void setRecommendationResource(RecommendationResponse recommendationResource) {
 		this.recommendationResource = recommendationResource;
 		Composite control = getControl();
 		Control[] children = control.getChildren();

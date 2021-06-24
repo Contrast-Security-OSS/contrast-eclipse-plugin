@@ -1,14 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2017 Contrast Security.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under
  * the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 3 of the License.
- * 
+ *
  * The terms of the GNU GPL version 3 which accompanies this distribution
  * and is available at https://www.gnu.org/licenses/gpl-3.0.en.html
- * 
+ *
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
@@ -17,8 +17,8 @@ package com.contrastsecurity.ide.eclipse.ui.internal.model;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.contrastsecurity.ide.eclipse.core.extended.EventItem;
-import com.contrastsecurity.ide.eclipse.core.extended.EventResource;
+import com.contrastsecurity.models.EventItem;
+import com.contrastsecurity.models.EventResource;
 
 public class EventContentProvider implements ITreeContentProvider {
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
@@ -37,10 +37,10 @@ public class EventContentProvider implements ITreeContentProvider {
 	public Object[] getChildren(Object parentElement) {
 		if (parentElement instanceof EventResource) {
 			EventResource eventResource = (EventResource) parentElement;
-			
+
 			if(eventResource.getCollapsedEvents() != null && !eventResource.getCollapsedEvents().isEmpty())
 				return eventResource.getCollapsedEvents().toArray();
-				
+
 			return eventResource.getItems();
 		}
 		return new Object[0];
@@ -53,7 +53,7 @@ public class EventContentProvider implements ITreeContentProvider {
 		}
 		else if(element instanceof EventResource)
 			return ((EventResource) element).getParent();
-		
+
 		return null;
 	}
 

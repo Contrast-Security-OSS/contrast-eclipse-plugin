@@ -31,9 +31,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
-import com.contrastsecurity.ide.eclipse.core.extended.TraceStatusRequest;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.StatusConstants;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
+import com.contrastsecurity.models.StatusRequest;
+
 
 public class MarkStatusDialog extends Dialog {
 
@@ -81,7 +82,7 @@ public class MarkStatusDialog extends Dialog {
 	private String traceId;
 	private String status;
 	private String visualStatus;
-	private TraceStatusRequest request;
+	private StatusRequest request;
 	
 	private Combo statusCombo;
 	private Combo reasonCombo;
@@ -165,7 +166,7 @@ public class MarkStatusDialog extends Dialog {
 		List<String> traces = new ArrayList<>();
 		traces.add(traceId);
 		
-		request = new TraceStatusRequest();
+		request = new StatusRequest();
 		request.setTraces(traces);
 		request.setStatus(status);
 		if(StringUtils.isNotBlank(noteText.getText())) {
@@ -197,7 +198,7 @@ public class MarkStatusDialog extends Dialog {
 		super.okPressed();
 	}
 	
-	public TraceStatusRequest getTraceStatusRequest() {
+	public StatusRequest getTraceStatusRequest() {
 		return request;
 	}
 	

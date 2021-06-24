@@ -32,22 +32,21 @@ import org.unbescape.html.HtmlEscape;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.Util;
-import com.contrastsecurity.ide.eclipse.core.extended.Chapter;
-import com.contrastsecurity.ide.eclipse.core.extended.PropertyResource;
-import com.contrastsecurity.ide.eclipse.core.extended.Risk;
-import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
-
+import com.contrastsecurity.models.StoryResponse;
+import com.contrastsecurity.models.Risk;
+import com.contrastsecurity.models.Chapter;
+import com.contrastsecurity.models.PropertyResource;
 
 public class OverviewTab extends AbstractTab {
 
-	private StoryResource story;
+	private StoryResponse story;
 
 	public OverviewTab(Composite parent, int style) {
 		super(parent, style);
 	}
 	
-	public void setStory(StoryResource story) {
+	public void setStory(StoryResponse story) {
 		
 		ResourceBundle resource = ResourceBundle.getBundle("OSGI-INF/l10n.bundle"); 
 		
@@ -171,7 +170,7 @@ public class OverviewTab extends AbstractTab {
 		return text;
 	}
 
-	public StoryResource getStory() {
+	public StoryResponse getStory() {
 		return story;
 	}
 

@@ -1,14 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2017 Contrast Security.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under
  * the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 3 of the License.
- * 
+ *
  * The terms of the GNU GPL version 3 which accompanies this distribution
  * and is available at https://www.gnu.org/licenses/gpl-3.0.en.html
- * 
+ *
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
@@ -61,14 +61,14 @@ import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import com.contrastsecurity.ide.eclipse.core.extended.EventItem;
-import com.contrastsecurity.ide.eclipse.core.extended.EventResource;
-import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
+import com.contrastsecurity.models.EventItem;
+import com.contrastsecurity.models.EventResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
+import com.contrastsecurity.models.EventSummaryResponse;
 
 public class EventsTab extends AbstractTab {
 
-	private EventSummaryResource eventSummary;
+	private EventSummaryResponse eventSummary;
 	private TreeViewer viewer;
 	ResourceBundle resource = ResourceBundle.getBundle("OSGI-INF/l10n.bundle");
 
@@ -337,7 +337,7 @@ public class EventsTab extends AbstractTab {
 
 	/**
 	 * Searches for file with a given name.
-	 * 
+	 *
 	 * @param filename
 	 *            The file name with extension included.
 	 * @return IFile object or null if the file is not found.
@@ -358,7 +358,7 @@ public class EventsTab extends AbstractTab {
 
 	/**
 	 * Recursively searches for a file with a given name.
-	 * 
+	 *
 	 * @param filename
 	 *            The file name with extension.
 	 * @param resource
@@ -391,7 +391,7 @@ public class EventsTab extends AbstractTab {
 		return matches;
 	}
 
-	public void setEventSummary(EventSummaryResource eventSummary) {
+	public void setEventSummary(EventSummaryResponse eventSummary) {
 		this.eventSummary = eventSummary;
 		if (eventSummary != null) {
 			viewer.setInput(eventSummary.getEvents().toArray(new EventResource[0]));
@@ -402,7 +402,7 @@ public class EventsTab extends AbstractTab {
 		getControl().redraw();
 	}
 
-	public EventSummaryResource getEventSummary() {
+	public EventSummaryResponse getEventSummary() {
 		return eventSummary;
 	}
 

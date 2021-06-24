@@ -17,12 +17,6 @@ import com.contrastsecurity.http.FilterForm;
 import com.contrastsecurity.http.ServerFilterForm;
 import com.contrastsecurity.http.TraceFilterForm;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
-import com.contrastsecurity.ide.eclipse.core.extended.EventDetails;
-import com.contrastsecurity.ide.eclipse.core.extended.EventResource;
-import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
-import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
-import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
-import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
 import com.contrastsecurity.models.AgentType;
 import com.contrastsecurity.models.Application;
 import com.contrastsecurity.models.Applications;
@@ -39,6 +33,7 @@ import com.contrastsecurity.models.Trace;
 import com.contrastsecurity.models.TraceFilter;
 import com.contrastsecurity.models.TraceListing;
 import com.contrastsecurity.models.Traces;
+import com.contrastsecurity.sdk.ContrastSDK;
 
 public class SdkTest {
 	/**
@@ -62,10 +57,10 @@ public class SdkTest {
 	 * Organization UUID. Required to run when testing retrieval of an event.
 	 */
 	private static String ORGANIZATION_UUID;
-	
+
 	private static String ORGANIZATION_NAME = "new_org";
 
-	ExtendedContrastSDK sdk;
+	ContrastSDK sdk;
 
 	@BeforeClass
 	public static void initRequiredParams() {
@@ -78,9 +73,9 @@ public class SdkTest {
 
 	@Before
 	public void init() {
-		
+
 		ContrastCoreActivator.saveNewOrganization(ORGANIZATION_NAME, REST_API_URL, USERNAME, SERVICE_KEY, API_KEY, ORGANIZATION_UUID);
-		
+
 		sdk = ContrastCoreActivator.getContrastSDK();
 	}
 
@@ -137,77 +132,6 @@ public class SdkTest {
 		}
 	}
 
-	@Test
-	public void getStoryTest() throws IOException, UnauthorizedException {
-
-		Applications applications = sdk.getApplications(ORGANIZATION_UUID);
-		if (!applications.getApplications().isEmpty()) {
-			Traces traces = sdk.getTracesInOrg(ORGANIZATION_UUID, null);
-			assertTrue(!traces.getTraces().isEmpty());
-			StoryResource story = sdk.getStory(ORGANIZATION_UUID, traces.getTraces().get(0).getUuid());
-			assertNotNull(story.getStory());
-		}
-
-	}
-
-	@Test
-	public void getEventSummaryTest() throws IOException, UnauthorizedException {
-		Applications applications = sdk.getApplications(ORGANIZATION_UUID);
-		if (!applications.getApplications().isEmpty()) {
-			Traces traces = sdk.getTracesInOrg(ORGANIZATION_UUID, null);
-			assertTrue(!traces.getTraces().isEmpty());
-
-			for (Trace trace : traces.getTraces()) {
-				EventSummaryResource eventSummary = sdk.getEventSummary(ORGANIZATION_UUID, trace.getUuid());
-				if (!eventSummary.getEvents().isEmpty()) {
-					for (EventResource event : eventSummary.getEvents()) {
-						assertTrue(event.getDescription().length() > 0);
-					}
-				}
-			}
-
-		}
-	}
-
-	@Test
-	public void getHttpRequestTest() throws IOException, UnauthorizedException {
-		Applications applications = sdk.getApplications(ORGANIZATION_UUID);
-		if (!applications.getApplications().isEmpty()) {
-			Traces traces = sdk.getTracesInOrg(ORGANIZATION_UUID, null);
-			assertTrue(!traces.getTraces().isEmpty());
-
-			for (Trace trace : traces.getTraces()) {
-				HttpRequestResource httpRequest = sdk.getHttpRequest(ORGANIZATION_UUID, trace.getUuid());
-				if (httpRequest.getHttpRequest() != null) {
-					assertTrue(httpRequest.getHttpRequest().getFormattedText().length() > 0);
-				}
-			}
-
-		}
-	}
-
-	@Test
-	public void getEventDetailsTest() throws IOException, UnauthorizedException {
-
-		Applications applications = sdk.getApplications(ORGANIZATION_UUID);
-		if (!applications.getApplications().isEmpty()) {
-			Traces traces = sdk.getTracesInOrg(ORGANIZATION_UUID, null);
-			assertTrue(!traces.getTraces().isEmpty());
-
-			for (Trace trace : traces.getTraces()) {
-				EventSummaryResource eventSummary = sdk.getEventSummary(ORGANIZATION_UUID, trace.getUuid());
-				if (!eventSummary.getEvents().isEmpty()) {
-					for (EventResource event : eventSummary.getEvents()) {
-
-						if (event.getCollapsedEvents() == null || event.getCollapsedEvents().isEmpty()) {
-							EventDetails eventDetails = sdk.getEventDetails(ORGANIZATION_UUID, trace.getUuid(), event);
-							assertTrue(!eventDetails.getMessages().isEmpty());
-						}
-					}
-				}
-			}
-		}
-	}
 
 	@Test
 	public void getProfileOrganizationsTest() throws IOException, UnauthorizedException {
@@ -264,7 +188,7 @@ public class SdkTest {
 	public void getApplicationSecondTest() throws IOException, UnauthorizedException {
 
 		EnumSet<FilterForm.ApplicationExpandValues> expandValues = EnumSet.of(FilterForm.ApplicationExpandValues.SCORES,
-				FilterForm.ApplicationExpandValues.LICENSE, FilterForm.ApplicationExpandValues.TRACE_BREAKDOWN);
+			FilterForm.ApplicationExpandValues.LICENSE, FilterForm.ApplicationExpandValues.TRACE_BREAKDOWN);
 
 		Applications applications = sdk.getApplications(ORGANIZATION_UUID);
 
@@ -381,7 +305,7 @@ public class SdkTest {
 	public void getServersWithFilterTest() throws IOException, UnauthorizedException {
 
 		EnumSet<ServerFilterForm.ServerExpandValue> expandValues = EnumSet
-				.of(ServerFilterForm.ServerExpandValue.APPLICATIONS);
+			.of(ServerFilterForm.ServerExpandValue.APPLICATIONS);
 
 		ServerFilterForm filterForm = new ServerFilterForm();
 		filterForm.setExpand(expandValues);

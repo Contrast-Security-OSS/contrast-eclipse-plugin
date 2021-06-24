@@ -53,18 +53,18 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import com.contrastsecurity.ide.eclipse.core.extended.TagsResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.TagLabelProvider;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
+import com.contrastsecurity.models.TagsResponse;
 
 public class TagDialog extends Dialog {
 
 	private ComboViewer tagsComboViewer;
 	private Text createTagText;
 	private TableViewer tableViewer;
-	private TagsResource traceTagsResource;
-	private TagsResource orgTagsResource;
+	private TagsResponse traceTagsResource;
+	private TagsResponse orgTagsResource;
 
 	private List<String> newTraceTags = null;
 
@@ -87,7 +87,7 @@ public class TagDialog extends Dialog {
 		}
 	};
 
-	public TagDialog(Shell parentShell, TagsResource traceTagsResource, TagsResource orgTagsResource) {
+	public TagDialog(Shell parentShell, TagsResponse traceTagsResource, TagsResponse orgTagsResource) {
 		super(parentShell);
 		this.traceTagsResource = traceTagsResource;
 		this.orgTagsResource = orgTagsResource;
@@ -261,8 +261,8 @@ public class TagDialog extends Dialog {
 		}
 	}
 
-	private void populateTagsComboViewer(ComboViewer comboViewer, TagsResource traceTagsResource,
-			TagsResource orgTagsResource) {
+	private void populateTagsComboViewer(ComboViewer comboViewer, TagsResponse traceTagsResource,
+			TagsResponse orgTagsResource) {
 
 		List<String> orgTags = orgTagsResource.getTags();
 		List<String> traceTags = traceTagsResource.getTags();

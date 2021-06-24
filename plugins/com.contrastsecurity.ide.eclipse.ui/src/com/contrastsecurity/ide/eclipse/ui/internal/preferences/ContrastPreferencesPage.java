@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Copyright (c) 2014 Software Analytics and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU General Public License, version 2 
+ * are made available under the terms of the GNU General Public License, version 2
  * (GPL-2.0) which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl-2.0.txt
  *
@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.jar.Manifest;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -52,9 +53,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
+import com.contrastsecurity.http.IntegrationName;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
-import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.util.UIElementUtils;
 import com.contrastsecurity.models.Organization;
@@ -292,8 +293,8 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 					@Override
 					public void run() {
-						ContrastSDK sdk = new ContrastSDK(usernameText.getText(), serviceKeyText.getText(),
-								apiKeyText.getText(), url);
+						Manifest manifest = new Manifest();
+						ContrastSDK sdk = new ContrastSDK.Builder(usernameText.getText(), serviceKeyText.getText(), apiKeyText.getText()).withApiUrl(url).withIntegrationName(IntegrationName.ECLIPSE_IDE).withVersion(manifest.getAttributes("Bundle-Version").toString()).build();
 						try {
 							Organization organization = Util.getDefaultOrganization(sdk);
 							if (organization == null || organization.getOrgUuid() == null) {
@@ -415,7 +416,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 					@Override
 					public void run() {
 
-						ExtendedContrastSDK sdk = ContrastCoreActivator.getContrastSDK(usernameText.getText(),
+						ContrastSDK sdk = ContrastCoreActivator.getContrastSDK(usernameText.getText(),
 								apiKeyText.getText(), serviceKeyText.getText(), url);
 
 						try {

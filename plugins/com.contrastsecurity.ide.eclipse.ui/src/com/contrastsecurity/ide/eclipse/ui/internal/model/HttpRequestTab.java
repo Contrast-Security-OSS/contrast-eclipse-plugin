@@ -1,14 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2017 Contrast Security.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under
  * the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 3 of the License.
- * 
+ *
  * The terms of the GNU GPL version 3 which accompanies this distribution
  * and is available at https://www.gnu.org/licenses/gpl-3.0.en.html
- * 
+ *
  * Contributors:
  *     Contrast Security - initial API and implementation
  *******************************************************************************/
@@ -27,13 +27,13 @@ import org.unbescape.html.HtmlEscape;
 
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.Util;
-import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
+import com.contrastsecurity.models.HttpRequestResponse;
 
 public class HttpRequestTab extends Composite {
 
 	private StyledText area;
-	private HttpRequestResource httpRequest;
+	private HttpRequestResponse httpRequest;
 
 	public HttpRequestTab(Composite parent, int style) {
 		super(parent, style);
@@ -54,16 +54,16 @@ public class HttpRequestTab extends Composite {
 		return area;
 	}
 
-	public HttpRequestResource getHttpRequest() {
+	public HttpRequestResponse getHttpRequest() {
 		return httpRequest;
 	}
 
-	public void setHttpRequest(HttpRequestResource httpRequest) {
+	public void setHttpRequest(HttpRequestResponse httpRequest) {
 		this.httpRequest = httpRequest;
 		area.setText(Constants.BLANK);
 		if (httpRequest != null && httpRequest.getHttpRequest() != null
 				&& httpRequest.getHttpRequest().getText() != null) {
-			
+
 			area.setText(Util.filterHeaders(httpRequest.getHttpRequest().getText(), "\n"));
 		} else if (httpRequest != null && httpRequest.getReason() != null) {
 			area.setText(httpRequest.getReason());

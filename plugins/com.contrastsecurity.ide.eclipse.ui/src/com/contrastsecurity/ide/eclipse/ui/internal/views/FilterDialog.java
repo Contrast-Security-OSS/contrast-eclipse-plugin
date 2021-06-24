@@ -52,12 +52,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.contrastsecurity.exceptions.UnauthorizedException;
 import com.contrastsecurity.http.TraceFilterForm;
+import com.contrastsecurity.http.TraceFilterType;
 import com.contrastsecurity.ide.eclipse.core.Constants;
 import com.contrastsecurity.ide.eclipse.core.ContrastCoreActivator;
 import com.contrastsecurity.ide.eclipse.core.Util;
-import com.contrastsecurity.ide.eclipse.core.extended.ExtendedContrastSDK;
-import com.contrastsecurity.ide.eclipse.core.extended.Filter;
-import com.contrastsecurity.ide.eclipse.core.extended.FilterResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ApplicationUIAdapter;
 import com.contrastsecurity.ide.eclipse.ui.internal.model.ContrastLabelProvider;
@@ -67,6 +65,9 @@ import com.contrastsecurity.models.Application;
 import com.contrastsecurity.models.Applications;
 import com.contrastsecurity.models.Server;
 import com.contrastsecurity.models.Servers;
+import com.contrastsecurity.models.TraceFilter;
+import com.contrastsecurity.models.TraceListing;
+import com.contrastsecurity.sdk.ContrastSDK;
 
 public class FilterDialog extends Dialog {
 
@@ -97,7 +98,7 @@ public class FilterDialog extends Dialog {
 	private Button statusReportedButton;
 	private Button statusUntrackedButton;
 
-	private final ExtendedContrastSDK extendedContrastSDK = ContrastCoreActivator.getContrastSDK();
+	private final ContrastSDK contrastSDK = ContrastCoreActivator.getContrastSDK();
 
 	private final IEclipsePreferences prefs = ContrastCoreActivator.getPreferences();
 
@@ -403,10 +404,10 @@ public class FilterDialog extends Dialog {
 				String orgUuid = ContrastCoreActivator.getSelectedOrganizationUuid();
 				String appId = getSelectedAppId();
 				if (!appId.equals(Constants.ALL_APPLICATIONS)) {
-					FilterResource filterResource = getApplicationTraceFiltersByType(orgUuid, appId,
-							Constants.TRACE_FILTER_TYPE_APP_VERSION_TAGS);
+					TraceListing filterResource = getApplicationTraceFiltersByType(orgUuid, appId,
+							TraceFilterType.APP_VERSION_TAGS);
 
-					updateAppVersionTagsComboBox(filterResource.getFilters());
+					updateAppVersionTagsComboBox(filterResource);
 				} else {
 					updateAppVersionTagsComboBox(null);
 				}
@@ -432,15 +433,15 @@ public class FilterDialog extends Dialog {
 		}
 	}
 
-	private void updateAppVersionTagsComboBox(final List<Filter> filters) {
+	private void updateAppVersionTagsComboBox(final TraceListing filters) {
 
-		if (filters != null && !filters.isEmpty()) {
+		if (filters != null && !filters.getFilters().isEmpty()) {
 			Set<String> appVersionTagsValues = new LinkedHashSet<>();
-			for (Filter filter : filters) {
+			for (TraceFilter filter : filters.getFilters()) {
 				appVersionTagsValues.add(filter.toString());
 			}
 			appVersionTagsComboViewer.setInput(appVersionTagsValues);
-			appVersionTagsComboViewer.setSelection(new StructuredSelection(filters.get(0).toString()));
+			appVersionTagsComboViewer.setSelection(new StructuredSelection(filters.getFilters().get(0).toString()));
 		} else {
 			appVersionTagsComboViewer.setInput(new LinkedHashSet<>());
 		}
@@ -694,11 +695,11 @@ public class FilterDialog extends Dialog {
 		return traceFilterForm;
 	}
 
-	private FilterResource getApplicationTraceFiltersByType(final String orgUuid, final String appId,
-			final String filterType) {
-		FilterResource filterResource = null;
+	private TraceListing getApplicationTraceFiltersByType(final String orgUuid, final String appId,
+			final TraceFilterType filterType) {
+		TraceListing filterResource = null;
 		try {
-			filterResource = extendedContrastSDK.getApplicationTraceFiltersByType(orgUuid, appId, filterType);
+			filterResource = contrastSDK.getTraceFiltersByType(orgUuid, appId, filterType);
 		} catch (IOException | UnauthorizedException e) {
 			e.printStackTrace();
 		}

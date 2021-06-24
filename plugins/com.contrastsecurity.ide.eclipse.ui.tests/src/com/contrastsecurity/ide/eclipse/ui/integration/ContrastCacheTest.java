@@ -7,13 +7,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.contrastsecurity.ide.eclipse.core.extended.EventSummaryResource;
-import com.contrastsecurity.ide.eclipse.core.extended.HttpRequestResource;
-import com.contrastsecurity.ide.eclipse.core.extended.StoryResource;
 import com.contrastsecurity.ide.eclipse.ui.ContrastUIActivator;
 import com.contrastsecurity.ide.eclipse.ui.cache.ContrastCache;
 import com.contrastsecurity.ide.eclipse.ui.cache.Key;
+import com.contrastsecurity.models.EventSummaryResponse;
+import com.contrastsecurity.models.HttpRequestResponse;
+import com.contrastsecurity.models.StoryResponse;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+
 
 public class ContrastCacheTest {
 
@@ -30,7 +31,7 @@ public class ContrastCacheTest {
 	Key key;
 
 	private ContrastCache contrastCache;
-	
+
 	@BeforeClass
 	public static void initRequiredParams() {
 		ORGANIZATION_UUID = System.getProperty("organizationId");
@@ -46,31 +47,31 @@ public class ContrastCacheTest {
 	@Test
 	public void getEventSummaryResourcesTest() {
 
-		EventSummaryResource eventSummaryResource = new EventSummaryResource();
+		EventSummaryResponse eventSummaryResource = new EventSummaryResponse();
 
-		ConcurrentLinkedHashMap<Key, EventSummaryResource> eventSummaryResources = contrastCache
-				.getEventSummaryResources();
+		ConcurrentLinkedHashMap<Key, EventSummaryResponse> eventSummaryResources = contrastCache
+			.getEventSummaryResources();
 
 		eventSummaryResources.put(key, eventSummaryResource);
 
 		assertTrue(contrastCache.getEventSummaryResources().size() == 1);
 
-		EventSummaryResource eventSummaryResourceNew = eventSummaryResources.get(key);
+		EventSummaryResponse eventSummaryResourceNew = eventSummaryResources.get(key);
 		assertEquals(eventSummaryResource, eventSummaryResourceNew);
 	}
 
 	@Test
 	public void getStoryResourcesTest() {
 
-		StoryResource storyResource = new StoryResource();
+		StoryResponse storyResource = new StoryResponse();
 
-		ConcurrentLinkedHashMap<Key, StoryResource> storyResources = contrastCache.getStoryResources();
+		ConcurrentLinkedHashMap<Key, StoryResponse> storyResources = contrastCache.getStoryResources();
 
 		storyResources.put(key, storyResource);
 
 		assertTrue(contrastCache.getStoryResources().size() == 1);
 
-		StoryResource storyResourceNew = storyResources.get(key);
+		StoryResponse storyResourceNew = storyResources.get(key);
 
 		assertEquals(storyResource, storyResourceNew);
 
@@ -79,16 +80,16 @@ public class ContrastCacheTest {
 	@Test
 	public void getHttpRequestResourcesTest() {
 
-		HttpRequestResource httpRequestResource = new HttpRequestResource();
+		HttpRequestResponse httpRequestResource = new HttpRequestResponse();
 
-		ConcurrentLinkedHashMap<Key, HttpRequestResource> httpRequestResources = contrastCache
-				.getHttpRequestResources();
+		ConcurrentLinkedHashMap<Key, HttpRequestResponse> httpRequestResources = contrastCache
+			.getHttpRequestResources();
 
 		httpRequestResources.put(key, httpRequestResource);
 
 		assertTrue(contrastCache.getHttpRequestResources().size() == 1);
 
-		HttpRequestResource httpRequestResourceNew = httpRequestResources.get(key);
+		HttpRequestResponse httpRequestResourceNew = httpRequestResources.get(key);
 
 		assertEquals(httpRequestResource, httpRequestResourceNew);
 
@@ -97,18 +98,18 @@ public class ContrastCacheTest {
 	@Test
 	public void clearTest() {
 
-		EventSummaryResource eventSummaryResource = new EventSummaryResource();
-		ConcurrentLinkedHashMap<Key, EventSummaryResource> eventSummaryResources = contrastCache
-				.getEventSummaryResources();
+		EventSummaryResponse eventSummaryResource = new EventSummaryResponse();
+		ConcurrentLinkedHashMap<Key, EventSummaryResponse> eventSummaryResources = contrastCache
+			.getEventSummaryResources();
 		eventSummaryResources.put(key, eventSummaryResource);
 
-		StoryResource storyResource = new StoryResource();
-		ConcurrentLinkedHashMap<Key, StoryResource> storyResources = contrastCache.getStoryResources();
+		StoryResponse storyResource = new StoryResponse();
+		ConcurrentLinkedHashMap<Key, StoryResponse> storyResources = contrastCache.getStoryResources();
 		storyResources.put(key, storyResource);
 
-		HttpRequestResource httpRequestResource = new HttpRequestResource();
-		ConcurrentLinkedHashMap<Key, HttpRequestResource> httpRequestResources = contrastCache
-				.getHttpRequestResources();
+		HttpRequestResponse httpRequestResource = new HttpRequestResponse();
+		ConcurrentLinkedHashMap<Key, HttpRequestResponse> httpRequestResources = contrastCache
+			.getHttpRequestResources();
 		httpRequestResources.put(key, httpRequestResource);
 
 		contrastCache.clear();
