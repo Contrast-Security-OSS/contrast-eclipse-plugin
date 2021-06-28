@@ -21,14 +21,12 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
         server-id: 'ossrh'
-    - name: Bump Version
-      run: mvn unleash:perform-tycho -B -Dunleash.versionUpgradeStrategy=DEFAULT -Dunleash.releaseArgs=jarsigner.skip=true
+    - name: Bump Version and Build Artifact
+      run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="jarsigner.skip=true, skipTests=true" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow
       env:
         GITHUB_TOKEN: ${{ github.token }}
     - name: Clean
       run: cd targets && mvn clean verify
-    - name: Build Artifact
-      run: cd .. && mvn clean verify -Djarsigner.skip=true -DskipTests
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
