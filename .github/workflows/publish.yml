@@ -21,7 +21,7 @@ jobs:
                   distribution: "adopt"
                   server-id: "ossrh"
             - name: Bump Version and Build Artifact
-              run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="jarsigner.skip=true, skipTests=true" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=${{ secrets.GITUSERNAME }} -Dunleash.scmPassword=${{ secrets.GITPASS }}
+              run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="jarsigner.skip=true, skipTests=true" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=${{ secrets.GITHUB_TOKEN }} -Dunleash.scmPassword=${{ secrets.GITHUB_TOKEN }}
               env:
                   GITHUB_TOKEN: ${{ github.token }}
             - name: Configure AWS Credentials
