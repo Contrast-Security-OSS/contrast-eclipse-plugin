@@ -25,8 +25,6 @@ jobs:
       run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="jarsigner.skip=true, skipTests=true" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow
       env:
         GITHUB_TOKEN: ${{ github.token }}
-    - name: Clean
-      run: cd targets && mvn clean verify
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
