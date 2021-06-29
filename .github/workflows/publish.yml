@@ -8,8 +8,8 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             contents: read
-            packages: write
-
+            packages: write-all
+            deployments: write-all
         steps:
             - uses: actions/checkout@v2
               with:
@@ -24,9 +24,6 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="jarsigner.skip=true, skipTests=true" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=$GITHUB_ACTOR -Dunleash.scmPassword=$GITHUB_TOKEN
-              with:
-                  permissions: write-all
-                  packages: write-all
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v1
               with:
