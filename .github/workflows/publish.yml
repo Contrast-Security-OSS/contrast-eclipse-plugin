@@ -29,5 +29,5 @@ jobs:
                   aws-region: us-east-1
             - name: Upload to s3 bucket
               run: |
-              aws s3 sync ./updatesite/target/repository/plugins s3://contrast-eclipse-plugin/plugins
-              aws s3 sync ./updatesite/target/repository/features s3://contrast-eclipse-plugin/features
+                  aws s3 sync ./updatesite/target/repository/plugins s3://contrast-eclipse-plugin/plugins
+                  aws s3 sync ./updatesite/target/repository/features s3://contrast-eclipse-plugin/features
