@@ -2,31 +2,38 @@
 
 name: PFX To File
 
-# Controls when the workflow will run
 on:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      - name: Write key file
-        env:
-          CODE_SIGN_PFX: ${{ secrets.CODE_SIGN_PFX }}
-          PFX_CODE: ${{ secrets.PFX_CODE }}
-        run: |
-          echo "$CODE_SIGN_PFX" | base64 --decode > ${HOME}/key.pfx
-          keytool -importkeystore -srckeystore ${HOME}/key.pfx -srcstoretype pkcs12 -destkeystore contrast-code-sign-cert.jks -deststoretype pkcs12 -deststorepass "$PFX_CODE" -srcstorepass "$PFX_CODE" -keystore ${HOME}/keystore_file -v
-          cd ${HOME}
-          pwd
-          ls -la
-          mvn verify -DskipTests=true -Dmaven.javadoc.skip=true -Dkeystore.path=${HOME}/keystore_file -Dkeystore.storepass="$PFX_CODE" -Dkeystore.alias=1 -Dkeystore.keypass="$PFX_CODE" -B -V -e
-          rm -f {HOME}/keystore_file
+    build:
+        runs-on: ubuntu-latest
+        permissions: write-all
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+            - name: Set up JDK 8
+              uses: actions/setup-java@v2
+              with:
+                  java-version: "8"
+                  distribution: "adopt"
+                  server-id: "ossrh"
+            - name: Prepare for signing
+              env:
+                CODE_SIGN_PFX: ${{ secrets.CODE_SIGN_PFX }}
+                PFX_CODE: ${{ secrets.PFX_CODE }}
+              run: |
+                echo "$CODE_SIGN_PFX" | base64 --decode > ${HOME}/key.pfx
+                keytool -importkeystore -srckeystore ${HOME}/key.pfx -srcstoretype pkcs12 -destkeystore contrast-code-sign-cert.jks -deststoretype pkcs12 -deststorepass "$PFX_CODE" -srcstorepass "$PFX_CODE" -keystore ${HOME}/keystore_file
+            - name: Bump Version and Build Artifact
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PFX_CODE: ${{ secrets.PFX_CODE }}
+              run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="skipTests=true, keystore.path=${HOME}/keystore_file, keystore.storepass='$PFX_CODE', keystore.alias=1, keystore.keypass='$PFX_CODE'" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=$GITHUB_ACTOR -Dunleash.scmPassword=$GITHUB_TOKEN
+            -name Clean up signing
+              continue-on-error: true
+              run |
+                rm -f ${HOME}/keystore_file
+                exit 1
+                
