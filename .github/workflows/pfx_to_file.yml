@@ -30,8 +30,8 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   PFX_CODE: ${{ secrets.PFX_CODE }}
               run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="skipTests=true, keystore.path=${HOME}/keystore_file, keystore.storepass='$PFX_CODE', keystore.alias=1, keystore.keypass='$PFX_CODE'" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=$GITHUB_ACTOR -Dunleash.scmPassword=$GITHUB_TOKEN
-            -name Clean up signing
+            - name: Clean up signing
               continue-on-error: true
-              run |
+              run: |
                 rm -f ${HOME}/keystore_file
                 exit 1
