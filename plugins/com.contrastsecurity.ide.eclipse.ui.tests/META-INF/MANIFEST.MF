@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: com.contrastsecurity.ide.eclipse.ui.tests
-Bundle-Version: 3.0.5.qualifier
+Bundle-Version: 3.0.5
 Fragment-Host: com.contrastsecurity.ide.eclipse.ui;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.junit;bundle-version="4.12.0"

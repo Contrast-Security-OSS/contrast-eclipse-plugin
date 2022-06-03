@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Contrast Security
 Bundle-SymbolicName: com.contrastsecurity.ide.rest.sdk
-Bundle-Version: 3.0.5.qualifier
+Bundle-Version: 3.0.5
 Bundle-Vendor: Contrast REST API SDK
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: com.google.gson;visibility:=reexport,

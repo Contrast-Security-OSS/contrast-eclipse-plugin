@@ -3,7 +3,7 @@
    <description>
       Contrast Security Update Site
    </description>
-   <feature url="features/com.contrastsecurity.ide.eclipse.feature_3.0.5.qualifier.jar" id="com.contrastsecurity.ide.eclipse.feature" version="3.0.5.qualifier">
+   <feature url="features/com.contrastsecurity.ide.eclipse.feature_3.0.5.jar" id="com.contrastsecurity.ide.eclipse.feature" version="3.0.5">
       <category name="com.contrastsecurity.ide.eclipse"/>
    </feature>
    <category-def name="com.contrastsecurity.ide.eclipse" label="Contrast IDE">
