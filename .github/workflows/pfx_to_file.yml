@@ -35,3 +35,10 @@ jobs:
               run: |
                 rm -f ${HOME}/keystore_file
                 rm -f ${HOME}/key.pfx
+            - name: Artifacts
+              uses: actions/upload-artifact@v2
+              with:
+                name: plugins artifacts
+                path: ./updatesite/target/repository/plugins
+                name: features artifacts
+                path: ./updatesite/target/repository/features
