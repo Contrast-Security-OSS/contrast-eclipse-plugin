@@ -1,5 +1,4 @@
 # Workflow to test secrets, first version empty in order to be able to run it from branch
-
 name: PFX To File
 
 on:
@@ -36,4 +35,3 @@ jobs:
               run |
                 rm -f ${HOME}/keystore_file
                 exit 1
-                
