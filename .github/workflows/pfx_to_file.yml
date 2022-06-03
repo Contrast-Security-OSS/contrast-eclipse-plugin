@@ -19,4 +19,14 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       - name: Write key file
+        env:
+          CODE_SIGN_PFX: ${{ secrets.PFX_CERT_SIGN }}
+          PFX_CODE: ${{ secrets.PFX_CODE }}
+        run: |
+          echo "$CODE_SIGN_PFX" | base64 --decode > ${HOME}/key.pfx
+          keytool -importkeystore -srckeystore ${HOME}/key.pfx -srcstoretype pkcs12 -destkeystore contrast-code-sign-cert.jks -deststoretype pkcs12 -deststorepass "$PFX_CODE" -srcstorepass "$PFX_CODE" -keystore ${HOME}/keystore_file -v
+          cd ${HOME}
+          pwd
           ls -la
+          mvn verify -DskipTests=true -Dmaven.javadoc.skip=true -Dkeystore.path=${HOME}/keystore_file -Dkeystore.storepass="$PFX_CODE" -Dkeystore.alias=1 -Dkeystore.keypass="$PFX_CODE" -B -V -e
+          rm -f {HOME}/keystore_file
