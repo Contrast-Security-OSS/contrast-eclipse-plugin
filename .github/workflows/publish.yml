@@ -17,10 +17,23 @@ jobs:
                   java-version: "8"
                   distribution: "adopt"
                   server-id: "ossrh"
+            - name: Prepare for signing
+              env:
+                CODE_SIGN_PFX: ${{ secrets.CODE_SIGN_PFX }}
+                PFX_CODE: ${{ secrets.PFX_CODE }}
+              run: |
+                echo "$CODE_SIGN_PFX" | base64 --decode > ${HOME}/key.pfx
+                keytool -importkeystore -srckeystore ${HOME}/key.pfx -srcstoretype pkcs12 -destkeystore contrast-code-sign-cert.jks -deststoretype pkcs12 -deststorepass "$PFX_CODE" -srcstorepass "$PFX_CODE" -keystore ${HOME}/keystore_file
             - name: Bump Version and Build Artifact
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="jarsigner.skip=true, skipTests=true" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=$GITHUB_ACTOR -Dunleash.scmPassword=$GITHUB_TOKEN
+                  PFX_CODE: ${{ secrets.PFX_CODE }}
+              run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="skipTests=true, keystore.path=${HOME}/keystore_file, keystore.storepass='$PFX_CODE', keystore.alias=1, keystore.keypass='$PFX_CODE'" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=$GITHUB_ACTOR -Dunleash.scmPassword=$GITHUB_TOKEN
+            - name: Clean up signing
+              continue-on-error: true
+              run: |
+                rm -f ${HOME}/keystore_file
+                rm -f ${HOME}/key.pfx
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v1
               with:
