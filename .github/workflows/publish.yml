@@ -5,17 +5,18 @@ on:
 
 jobs:
     build:
+        name: Build, Sign and Publish
         runs-on: ubuntu-latest
         permissions: write-all
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
             - name: Set up JDK 8
-              uses: actions/setup-java@v2
+              uses: actions/setup-java@v3
               with:
                   java-version: "8"
-                  distribution: "adopt"
+                  distribution: "temurin"
                   server-id: "ossrh"
             - name: Prepare for signing
               env:
@@ -30,6 +31,7 @@ jobs:
                   PFX_CODE: ${{ secrets.PFX_CODE }}
               run: mvn unleash:perform-tycho -B -Dunleash.releaseArgs="skipTests=true, keystore.path=${HOME}/keystore_file, keystore.storepass='$PFX_CODE', keystore.alias=1, keystore.keypass='$PFX_CODE'" -Dunleash.versionUpgradeStrategy=DEFAULT -Dworkflow=customWorkflow -Dunleash.scmUsername=$GITHUB_ACTOR -Dunleash.scmPassword=$GITHUB_TOKEN
             - name: Clean up signing
+              if: always()
               continue-on-error: true
               run: |
                 rm -f ${HOME}/keystore_file
