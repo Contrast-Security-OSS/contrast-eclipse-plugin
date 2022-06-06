@@ -5,8 +5,8 @@ on:
     workflow_dispatch:
 
 jobs:
-    name: Build, Sign and Publish
     build:
+        name: Build, Sign and Publish
         runs-on: ubuntu-latest
         permissions: write-all
         steps:
