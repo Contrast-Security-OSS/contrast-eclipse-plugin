@@ -584,6 +584,9 @@ public class FilterDialog extends Dialog {
 			form = Util.getTraceFilterForm(serverId, currentOffset, PAGE_LIMIT);
 		}
 		form.setStatus(statuses);
+		
+		form.setTracked(getBeingTrackedFilter());
+		form.setUntracked(getUntrackedFilter());
 
 		String lastDetected = (String) ((IStructuredSelection) lastDetectedCombo.getSelection()).getFirstElement();
 	
@@ -636,15 +639,19 @@ public class FilterDialog extends Dialog {
 		if (statusFixedButton.getSelection()) {
 			statuses.add(Constants.VULNERABILITY_STATUS_FIXED);
 		}
-		if (statusBeingTrackedButton.getSelection()) {
-			statuses.add(Constants.VULNERABILITY_STATUS_BEING_TRACKED);
-		}
-		if (statusUntrackedButton.getSelection()) {
-			statuses.add(Constants.VULNERABILITY_STATUS_UNTRACKED);
-		}
+
 
 		return statuses;
 	}
+	
+	private Boolean getBeingTrackedFilter() {
+		return statusBeingTrackedButton.getSelection();
+	}
+	
+	private Boolean getUntrackedFilter() {
+		return statusUntrackedButton.getSelection();
+	}
+
 
 	private Long getSelectedServerId() {
 		ISelection sel = serverCombo.getSelection();

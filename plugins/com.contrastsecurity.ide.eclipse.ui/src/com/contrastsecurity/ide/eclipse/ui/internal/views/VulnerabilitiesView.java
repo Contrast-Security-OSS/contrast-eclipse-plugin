@@ -950,6 +950,8 @@ public class VulnerabilitiesView extends ViewPart {
 		}
 		form.setSeverities(severities);
 		form.setStatus(statuses);
+		form.setTracked(getBeingTrackedFilterFromEclipsePreferences());
+		form.setUntracked(getUntrackedFilterFromEclipsePreferences());
 
 		String lastDetected = prefs.get(Constants.LAST_DETECTED, "");
 		if (!lastDetected.isEmpty()) {
@@ -1039,13 +1041,16 @@ public class VulnerabilitiesView extends ViewPart {
 		if (prefs.getBoolean(Constants.STATUS_FIXED, false)) {
 			statuses.add(Constants.VULNERABILITY_STATUS_FIXED);
 		}
-		if (prefs.getBoolean(Constants.STATUS_BEING_TRACKED, false)) {
-			statuses.add(Constants.VULNERABILITY_STATUS_BEING_TRACKED);
-		}
-		if (prefs.getBoolean(Constants.STATUS_UNTRACKED, false)) {
-			statuses.add(Constants.VULNERABILITY_STATUS_UNTRACKED);
-		}
 
 		return statuses;
 	}
+	
+	private Boolean getBeingTrackedFilterFromEclipsePreferences() {
+		return prefs.getBoolean(Constants.STATUS_BEING_TRACKED, false);
+	}
+	
+	private Boolean getUntrackedFilterFromEclipsePreferences() {
+		return prefs.getBoolean(Constants.STATUS_UNTRACKED, false);
+	}
+
 }
