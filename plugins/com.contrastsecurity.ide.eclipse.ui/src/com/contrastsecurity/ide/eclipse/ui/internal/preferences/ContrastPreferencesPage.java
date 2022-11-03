@@ -67,7 +67,7 @@ import com.contrastsecurity.sdk.UserAgentProduct;
 public class ContrastPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 
 	public static final String ID = "com.contrastsecurity.ide.eclipse.ui.internal.preferences.ContrastPreferencesPage";
-	private final static String URL_SUFFIX = "/Contrast/api";
+	private final static String URL_SUFFIX = "/Contrast";
 	private Text teamServerText;
 	private Text usernameText;
 	private Text serviceKeyText;
@@ -169,7 +169,7 @@ public class ContrastPreferencesPage extends PreferencePage implements IWorkbenc
 
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				verifyTeamServerUrl();
+				//verifyTeamServerUrl();
 				retrieveOrganizationName(composite);
 			}
 
